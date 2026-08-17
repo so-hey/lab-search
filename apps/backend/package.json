@@ -1,0 +1,30 @@
+{
+  "name": "backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --watch --import tsx src/index.ts",
+    "start": "node --env-file-if-exists=.env --import tsx src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint src scripts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test src/services/documents/chunkDocument.test.ts src/services/embedding/LocalEmbeddingProvider.test.ts src/services/search/cosineSimilarity.test.ts",
+    "index:local": "node --env-file-if-exists=.env --import tsx scripts/index-local-documents.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.1",
+    "@lab-search/shared": "workspace:*",
+    "hono": "^4.9.6",
+    "pdf-parse": "^2.4.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.34.0",
+    "@types/node": "^20.19.11",
+    "eslint": "^9.34.0",
+    "globals": "^16.3.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.41.0"
+  }
+}

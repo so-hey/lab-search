@@ -1,0 +1,9 @@
+{
+  "name": "slack",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@lab-search/shared": "workspace:*"
+  }
+}

@@ -2,25 +2,15 @@
   "name": "lab-search",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.15.0",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "next": "16.3.1",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.1",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "dev": "pnpm --parallel --filter backend --filter web dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "build": "pnpm --filter @lab-search/shared build && pnpm --filter backend build && pnpm --filter web build",
+    "lint": "pnpm --filter @lab-search/shared lint && pnpm --filter backend lint && pnpm --filter web lint",
+    "typecheck": "pnpm --filter @lab-search/shared typecheck && pnpm --filter backend typecheck && pnpm --filter web typecheck",
+    "test": "pnpm --filter backend test",
+    "index:local": "pnpm --filter backend index:local"
   }
 }
