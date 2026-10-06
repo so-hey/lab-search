@@ -9,7 +9,10 @@ import type {
   SearchLogRepository,
 } from "../../repositories/metadata/types.js";
 import type { EmbeddingProvider } from "../embedding/EmbeddingProvider.js";
-import type { Reranker } from "../reranking/Reranker.js";
+import {
+  RerankerRateLimitError,
+  type Reranker,
+} from "../reranking/Reranker.js";
 import { groupSearchResults } from "./groupSearchResults.js";
 
 const DEFAULT_LIMIT = 5;
@@ -151,10 +154,16 @@ export async function searchDocuments(
         scoreType: "reranker" as const,
       }));
     } catch (error) {
-      console.error(
-        `[reranker] ${dependencies.reranker.id} failed; using retrieval order`,
-        error,
-      );
+      if (error instanceof RerankerRateLimitError) {
+        console.warn(
+          `[reranker] ${dependencies.reranker.id} rate limited; using retrieval order (retry in about ${Math.max(1, Math.ceil(error.retryAfterMs / 1_000))}s)`,
+        );
+      } else {
+        console.error(
+          `[reranker] ${dependencies.reranker.id} failed; using retrieval order`,
+          error,
+        );
+      }
       results = results.slice(0, limit);
     }
   } else {

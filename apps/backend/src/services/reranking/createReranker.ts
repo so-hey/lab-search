@@ -13,5 +13,6 @@ export function createReranker(): Reranker | undefined {
     apiKey: requiredEnv("VOYAGE_API_KEY"),
     model: optionalEnv("VOYAGE_RERANK_MODEL"),
     maxRetries: integerEnv("VOYAGE_RERANK_MAX_RETRIES", 4),
+    requestsPerMinute: integerEnv("VOYAGE_RERANK_REQUESTS_PER_MINUTE", 3),
   });
 }

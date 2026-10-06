@@ -1,20 +1,29 @@
-import type { Reranker, RerankResult } from "./Reranker.js";
+import {
+  RerankerRateLimitError,
+  type Reranker,
+  type RerankResult,
+} from "./Reranker.js";
 
 const DEFAULT_ENDPOINT = "https://api.voyageai.com/v1/rerank";
 const DEFAULT_MODEL = "rerank-2.5-lite";
 const DEFAULT_MAX_RETRIES = 4;
+const DEFAULT_REQUESTS_PER_MINUTE = 3;
 const MAX_RETRY_DELAY_MS = 60_000;
+const RATE_LIMIT_WINDOW_MS = 60_000;
 
 type Fetch = typeof fetch;
 type Sleep = (milliseconds: number) => Promise<void>;
+type Clock = () => number;
 
 export type VoyageRerankerOptions = {
   apiKey: string;
   model?: string;
   endpoint?: string;
   maxRetries?: number;
+  requestsPerMinute?: number;
   fetch?: Fetch;
   sleep?: Sleep;
+  now?: Clock;
 };
 
 function sleep(milliseconds: number): Promise<void> {
@@ -95,8 +104,12 @@ export class VoyageReranker implements Reranker {
   private readonly model: string;
   private readonly endpoint: string;
   private readonly maxRetries: number;
+  private readonly requestsPerMinute: number;
   private readonly request: Fetch;
   private readonly wait: Sleep;
+  private readonly now: Clock;
+  private recentRequests: number[] = [];
+  private blockedUntil = 0;
 
   constructor(options: VoyageRerankerOptions) {
     if (!options.apiKey.trim()) throw new Error("Voyage API key must not be empty.");
@@ -107,9 +120,42 @@ export class VoyageReranker implements Reranker {
     if (!Number.isInteger(this.maxRetries) || this.maxRetries < 1) {
       throw new Error("Voyage reranker max retries must be a positive integer.");
     }
+    this.requestsPerMinute =
+      options.requestsPerMinute ?? DEFAULT_REQUESTS_PER_MINUTE;
+    if (!Number.isInteger(this.requestsPerMinute) || this.requestsPerMinute < 1) {
+      throw new Error(
+        "Voyage reranker requests per minute must be a positive integer.",
+      );
+    }
     this.request = options.fetch ?? fetch;
     this.wait = options.sleep ?? sleep;
+    this.now = options.now ?? Date.now;
     this.id = `voyage:${this.model}`;
+  }
+
+  private reserveRequest(): void {
+    const now = this.now();
+    if (this.blockedUntil > now) {
+      throw new RerankerRateLimitError(
+        "Voyage Reranker is cooling down after a 429 response.",
+        this.blockedUntil - now,
+      );
+    }
+
+    this.recentRequests = this.recentRequests.filter(
+      (startedAt) => now - startedAt < RATE_LIMIT_WINDOW_MS,
+    );
+    if (this.recentRequests.length >= this.requestsPerMinute) {
+      const retryAfterMs = Math.max(
+        1,
+        this.recentRequests[0] + RATE_LIMIT_WINDOW_MS - now,
+      );
+      throw new RerankerRateLimitError(
+        `Voyage Reranker local rate limit (${this.requestsPerMinute} RPM) reached.`,
+        retryAfterMs,
+      );
+    }
+    this.recentRequests.push(now);
   }
 
   async rerank(
@@ -127,6 +173,7 @@ export class VoyageReranker implements Reranker {
     let lastError: unknown;
     for (let attempt = 1; attempt <= this.maxRetries; attempt += 1) {
       try {
+        this.reserveRequest();
         const response = await this.request(this.endpoint, {
           method: "POST",
           headers: {
@@ -155,6 +202,15 @@ export class VoyageReranker implements Reranker {
         const error = new Error(
           `Voyage Reranker API failed (${response.status}): ${responseError(payload)}`,
         );
+        if (response.status === 429) {
+          const retryAfterMs =
+            retryAfterMilliseconds(response) ?? RATE_LIMIT_WINDOW_MS;
+          this.blockedUntil = Math.max(
+            this.blockedUntil,
+            this.now() + retryAfterMs,
+          );
+          throw new RerankerRateLimitError(error.message, retryAfterMs);
+        }
         if (!isRetriable(response.status) || attempt === this.maxRetries) throw error;
         lastError = error;
         const delay =
@@ -165,6 +221,7 @@ export class VoyageReranker implements Reranker {
         );
         await this.wait(delay);
       } catch (error) {
+        if (error instanceof RerankerRateLimitError) throw error;
         if (
           error instanceof Error &&
           error.message.startsWith("Voyage Reranker API failed")

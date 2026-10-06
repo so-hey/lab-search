@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { RerankerRateLimitError } from "./Reranker.js";
 import { VoyageReranker } from "./VoyageReranker.js";
 
 describe("VoyageReranker", () => {
@@ -46,17 +47,35 @@ describe("VoyageReranker", () => {
     ]);
   });
 
-  it("429ではRetry-Afterを待って同じrequestを再試行する", async () => {
+  it("429では再試行せずRetry-After付きのrate limit errorを返す", async () => {
     let attempts = 0;
-    const delays: number[] = [];
     const request = (async () => {
       attempts += 1;
-      if (attempts === 1) {
-        return new Response(JSON.stringify({ detail: "rate limited" }), {
-          status: 429,
-          headers: { "retry-after": "2" },
-        });
-      }
+      return new Response(JSON.stringify({ detail: "rate limited" }), {
+        status: 429,
+        headers: { "retry-after": "2" },
+      });
+    }) as typeof fetch;
+    const reranker = new VoyageReranker({
+      apiKey: "secret",
+      maxRetries: 2,
+      fetch: request,
+    });
+
+    await assert.rejects(
+      reranker.rerank("query", ["document"], 1),
+      (error: unknown) =>
+        error instanceof RerankerRateLimitError && error.retryAfterMs === 2_000,
+    );
+
+    assert.equal(attempts, 1);
+  });
+
+  it("設定したRPMを超えるrequestはAPIを呼ばずにfallback用errorを返す", async () => {
+    let attempts = 0;
+    let now = 1_000;
+    const request = (async () => {
+      attempts += 1;
       return new Response(
         JSON.stringify({ data: [{ index: 0, relevance_score: 0.8 }] }),
         { status: 200 },
@@ -64,17 +83,21 @@ describe("VoyageReranker", () => {
     }) as typeof fetch;
     const reranker = new VoyageReranker({
       apiKey: "secret",
-      maxRetries: 2,
+      requestsPerMinute: 1,
       fetch: request,
-      sleep: async (milliseconds) => {
-        delays.push(milliseconds);
-      },
+      now: () => now,
     });
 
-    const results = await reranker.rerank("query", ["document"], 1);
+    await reranker.rerank("query", ["document"], 1);
+    await assert.rejects(
+      reranker.rerank("query", ["document"], 1),
+      (error: unknown) =>
+        error instanceof RerankerRateLimitError && error.retryAfterMs === 60_000,
+    );
+    assert.equal(attempts, 1);
 
+    now += 60_000;
+    await reranker.rerank("query", ["document"], 1);
     assert.equal(attempts, 2);
-    assert.deepEqual(delays, [2_000]);
-    assert.deepEqual(results, [{ index: 0, score: 0.8 }]);
   });
 });

@@ -71,6 +71,7 @@ RERANKER_PROVIDER=voyage
 VOYAGE_RERANK_MODEL=rerank-2.5-lite
 RERANK_CANDIDATE_DOCUMENTS=20
 VOYAGE_RERANK_MAX_RETRIES=4
+VOYAGE_RERANK_REQUESTS_PER_MINUTE=3
 
 ZILLIZ_ENDPOINT=https://your-cluster-endpoint
 ZILLIZ_TOKEN=...
@@ -137,9 +138,12 @@ RERANKER_PROVIDER=voyage
 VOYAGE_RERANK_MODEL=rerank-2.5-lite
 RERANK_CANDIDATE_DOCUMENTS=20
 VOYAGE_RERANK_MAX_RETRIES=4
+VOYAGE_RERANK_REQUESTS_PER_MINUTE=3
 ```
 
 Hybrid retrievalでは、日本語・英語が混在する研究室資料向けにICU analyzerを使ったBM25検索と、既存EmbeddingによるCOSINE検索を別々に実行し、Zilliz内でRRF（`k=60`）統合します。その後`documentId`で候補をまとめ、best chunkと上位2件の関連chunkを含む上位20文書を既定でVoyage `rerank-2.5-lite`へ送り、最終Top 5を決定します。reranker障害時は検索API全体を失敗させず、RRFの順位へfallbackします。
+
+Voyageのbillingに支払い方法を登録していない場合、Rerankerは3 RPMに制限されます。Backendは`VOYAGE_RERANK_REQUESTS_PER_MINUTE`を超える呼び出しを事前に止め、429を受けた場合も短い間隔で再試行せず、すぐHybrid retrievalの順位へfallbackします。このためrate limit中も検索結果は待たずに返ります。支払い方法を登録した場合は、Voyage dashboardに表示された実際のRPMへ設定を更新してください。
 
 Hybrid schemaは既存dense collectionへ後付けできないため、新しいcollection名が必要です。既存の`document_chunks_voyage4_lite_1024`から再Embeddingせず移す場合は、次のように設定します。
 
