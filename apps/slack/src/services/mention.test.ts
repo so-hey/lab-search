@@ -25,6 +25,13 @@ describe("extractMentionQuery", () => {
     );
   });
 
+  it("Bot IDを取得できないDM経路でも先頭メンションを除く", () => {
+    assert.equal(
+      extractMentionQuery("<@U0C6TUH8W69> モデルマージ"),
+      "モデルマージ",
+    );
+  });
+
   it("別ユーザーへのメンションは検索語に残す", () => {
     assert.equal(
       extractMentionQuery("<@U012ABCDEF> <@U999999999> の研究", "U012ABCDEF"),

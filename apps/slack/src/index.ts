@@ -52,43 +52,46 @@ async function slackIdentity(
   return { teamId, userId, email };
 }
 
-app.command(commandName, async ({ command, ack, client, respond, logger }) => {
-  await ack();
-  const query = command.text.trim();
-  if (!query) {
-    await respond({
-      response_type: "ephemeral",
-      text: `検索語を指定してください。例: ${commandName} モデルマージ`,
-    });
-    return;
-  }
-  try {
-    const identity = await slackIdentity(
-      client,
-      command.team_id,
-      command.user_id,
-    );
-    const response = await backend.search(query, identity, 5);
-    await respond({
-      response_type: "ephemeral",
-      text: `「${query}」の検索結果 ${response.results.length}件`,
-      blocks: buildSearchResultBlocks(query, response),
-    });
-  } catch (error) {
-    logger.error(error);
-    await respond({
-      response_type: "ephemeral",
-      text: userFacingErrorMessage(error, "search"),
-    });
-  }
-});
+app.command(
+  commandName,
+  async ({ command, ack, client, context, respond, logger }) => {
+    await ack();
+    const query = extractMentionQuery(command.text, context.botUserId);
+    if (!query) {
+      await respond({
+        response_type: "ephemeral",
+        text: `検索語を指定してください。例: ${commandName} モデルマージ`,
+      });
+      return;
+    }
+    try {
+      const identity = await slackIdentity(
+        client,
+        command.team_id,
+        command.user_id,
+      );
+      const response = await backend.search(query, identity, 5);
+      await respond({
+        response_type: "ephemeral",
+        text: `「${query}」の検索結果 ${response.results.length}件`,
+        blocks: buildSearchResultBlocks(query, response),
+      });
+    } catch (error) {
+      logger.error(error);
+      await respond({
+        response_type: "ephemeral",
+        text: userFacingErrorMessage(error, "search"),
+      });
+    }
+  },
+);
 
 app.event("app_mention", async ({ event, body, client, context, say, logger }) => {
   const threadTs = event.thread_ts ?? event.ts;
   try {
-    if (!context.botUserId || !event.user) {
+    if (!event.user) {
       throw new SlackUserFacingError(
-        "SlackのBotまたはユーザー情報を取得できませんでした。管理者へ連絡してください。",
+        "Slackユーザー情報を取得できませんでした。管理者へ連絡してください。",
       );
     }
     const query = extractMentionQuery(event.text, context.botUserId);
@@ -115,11 +118,15 @@ app.event("app_mention", async ({ event, body, client, context, say, logger }) =
   }
 });
 
-app.message(async ({ message, body, client, say, logger }) => {
+app.message(async ({ message, body, client, context, say, logger }) => {
   const directMessage = parseDirectMessage(message);
   if (!directMessage) return;
   try {
-    if (!directMessage.query) {
+    const query = extractMentionQuery(
+      directMessage.query,
+      context.botUserId,
+    );
+    if (!query) {
       await say("検索語を入力してください。例: モデルマージ");
       return;
     }
@@ -128,10 +135,10 @@ app.message(async ({ message, body, client, say, logger }) => {
       body.team_id,
       directMessage.userId,
     );
-    const response = await backend.search(directMessage.query, identity, 5);
+    const response = await backend.search(query, identity, 5);
     await say({
-      text: `「${directMessage.query}」の検索結果 ${response.results.length}件`,
-      blocks: buildSearchResultBlocks(directMessage.query, response),
+      text: `「${query}」の検索結果 ${response.results.length}件`,
+      blocks: buildSearchResultBlocks(query, response),
     });
   } catch (error) {
     logger.error(error);
