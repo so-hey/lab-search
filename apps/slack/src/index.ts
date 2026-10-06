@@ -5,6 +5,7 @@ import {
 } from "@slack/bolt";
 import { booleanEnv, integerEnv, optionalEnv, requiredEnv } from "./config/env.js";
 import { BackendClient, type SlackIdentity } from "./services/BackendClient.js";
+import { SlackIdentityCache } from "./services/SlackIdentityCache.js";
 import { parseDirectMessage } from "./services/directMessage.js";
 import { extractMentionQuery } from "./services/mention.js";
 import {
@@ -31,6 +32,10 @@ const app = new App({
     : { signingSecret: requiredEnv("SLACK_SIGNING_SECRET") }),
 });
 const commandName = optionalEnv("SLACK_SEARCH_COMMAND") ?? "/lab-search";
+const identityCache = new SlackIdentityCache(
+  integerEnv("SLACK_IDENTITY_CACHE_TTL_SECONDS", 3_600) * 1_000,
+  integerEnv("SLACK_IDENTITY_CACHE_MAX_ENTRIES", 500),
+);
 
 async function slackIdentity(
   client: Parameters<Parameters<typeof app.command>[1]>[0]["client"],
@@ -42,14 +47,16 @@ async function slackIdentity(
       "Slack workspaceの情報を取得できませんでした。管理者へ連絡してください。",
     );
   }
-  const response = await client.users.info({ user: userId });
-  const email = response.user?.profile?.email;
-  if (!email) {
-    throw new SlackUserFacingError(
-      "Slackプロフィールからメールアドレスを取得できません。管理者へ連絡してください。",
-    );
-  }
-  return { teamId, userId, email };
+  return identityCache.getOrLoad(teamId, userId, async () => {
+    const response = await client.users.info({ user: userId });
+    const email = response.user?.profile?.email;
+    if (!email) {
+      throw new SlackUserFacingError(
+        "Slackプロフィールからメールアドレスを取得できません。管理者へ連絡してください。",
+      );
+    }
+    return { teamId, userId, email };
+  });
 }
 
 app.command(

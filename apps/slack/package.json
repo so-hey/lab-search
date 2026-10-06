@@ -10,7 +10,7 @@
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test src/services/BackendClient.test.ts src/services/directMessage.test.ts src/services/mention.test.ts src/services/userFacingError.test.ts src/views/searchResults.test.ts"
+    "test": "node --import tsx --test src/services/BackendClient.test.ts src/services/SlackIdentityCache.test.ts src/services/directMessage.test.ts src/services/mention.test.ts src/services/userFacingError.test.ts src/views/searchResults.test.ts"
   },
   "dependencies": {
     "@lab-search/shared": "workspace:*",

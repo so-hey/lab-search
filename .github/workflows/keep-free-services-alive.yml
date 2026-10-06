@@ -1,0 +1,36 @@
+name: Keep free services active
+
+on:
+  schedule:
+    # 毎日13:17 JST。GitHub ActionsのcronはUTCで指定する。
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keep-free-services-active
+  cancel-in-progress: false
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.15.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 25
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm keepalive:free-services
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          ZILLIZ_ENDPOINT: ${{ secrets.ZILLIZ_ENDPOINT }}
+          ZILLIZ_TOKEN: ${{ secrets.ZILLIZ_TOKEN }}
+          ZILLIZ_COLLECTION: ${{ secrets.ZILLIZ_COLLECTION }}

@@ -64,6 +64,8 @@ VOYAGE_EMBEDDING_MODEL=voyage-4-lite
 VOYAGE_EMBEDDING_MAX_RETRIES=8
 VOYAGE_EMBEDDING_REQUESTS_PER_MINUTE=3
 VOYAGE_EMBEDDING_TOKENS_PER_MINUTE=10000
+QUERY_EMBEDDING_CACHE_TTL_SECONDS=900
+QUERY_EMBEDDING_CACHE_MAX_ENTRIES=500
 EMBEDDING_SYNC_BATCH_SIZE=5
 SEARCH_STRATEGY=hybrid
 RERANKER_PROVIDER=voyage
@@ -107,6 +109,33 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=....apps.googleusercontent.com
 Slack Botの設定と起動方法は[`apps/slack/README.md`](apps/slack/README.md)を参照してください。ローカルではSocket Modeを利用できるため、公開Request URLなしで動作確認できます。
 
 Googleログインでは対応ChromeでFedCM button flowを利用し、非対応ブラウザのpopup flow向けに`Cross-Origin-Opener-Policy: same-origin-allow-popups`も設定しています。localhostでログインpopupがブラウザに拒否される場合は、通常のブラウザタブで`http://localhost:3000`を直接開き、このoriginのpopupを許可してください。iframe内のpreviewではpopupやFedCMが制限されることがあります。
+
+## 無料枠を維持する自動処理
+
+`.github/workflows/keep-free-services-alive.yml`は毎日13:17（JST）に次の軽量処理を実行します。
+
+- Supabase: `documents`、`allowed_users`、`search_logs`を各1行だけSELECT
+- Zilliz: vectorやchunk本文を返さず、現在のcollectionからIDを最大1件だけquery
+
+同じ処理はローカルでも確認できます。
+
+```bash
+pnpm keepalive:free-services
+```
+
+GitHub repositoryの`Settings → Secrets and variables → Actions`へ、次のRepository Secretsを登録してください。
+
+```text
+SUPABASE_URL
+SUPABASE_SECRET_KEY
+ZILLIZ_ENDPOINT
+ZILLIZ_TOKEN
+ZILLIZ_COLLECTION
+```
+
+登録後、`Actions → Keep free services active → Run workflow`を一度手動実行し、両方のログが成功することを確認します。workflow失敗を見落とさないよう、GitHubのActions通知も有効にしてください。scheduled workflow自体が無効化された場合は、Actions画面で再度有効化します。
+
+Voyage、Google Drive API、Google OAuth、Slackには維持目的の不要なAPI requestを送りません。検索時のVoyage query Embeddingは同一queryを既定15分・最大500件までBackendのmemoryへcacheし、Slackの`users.info`結果は既定1時間・最大500人までBot processのmemoryへcacheします。process再起動時にcacheは消えます。検索ログやfeedbackは自動削除せず、必要な保持期間を決めてから削除方針を追加します。
 
 ## Zilliz collectionの準備
 

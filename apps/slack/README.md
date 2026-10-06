@@ -7,7 +7,7 @@
 - `/lab-search <検索語>`
 - `@lab-search <検索語>`で投稿を残し、スレッドへ検索結果を返信
 - BotとのDMに検索語を送り、同じDMへ検索結果を返信
-- Slack user IDから`users.info`でemailを取得
+- Slack user IDから`users.info`でemailを取得し、結果をmemory cache
 - Backend Service Token、workspace ID、user ID、emailの転送
 - 上位5文書のBlock Kit表示
 - Page／Slide、最終score方式、該当箇所の表示
@@ -46,6 +46,8 @@ openssl rand -hex 32
 ```dotenv
 # apps/slack/.env
 SLACK_BACKEND_SERVICE_TOKEN=<生成値>
+SLACK_IDENTITY_CACHE_TTL_SECONDS=3600
+SLACK_IDENTITY_CACHE_MAX_ENTRIES=500
 
 # apps/backend/.env
 SLACK_BACKEND_SERVICE_TOKEN=<同じ生成値>
