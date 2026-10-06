@@ -1,11 +1,85 @@
-# Slack Bot workspace
+# Slack Bot
 
-Phase 3でSlack Botを実装するためのworkspaceです。Slack側に検索ロジックは置かず、API契約を`@lab-search/shared`からimportし、Backendの`POST /api/search`と`POST /api/feedback`をHTTPで利用します。
+研究室資料検索Backendの`POST /api/search`と`POST /api/feedback`だけを利用するSlack Botです。検索、Embedding、Zilliz、Supabaseの処理は持ちません。
 
-今後の予定:
+## 実装済み
 
-- Slack App設定
-- slash command
-- mentionへの応答
-- Block Kitによる検索結果表示
-- feedback button
+- `/lab-search <検索語>`
+- Slack user IDから`users.info`でemailを取得
+- Backend Service Token、workspace ID、user ID、emailの転送
+- 上位5文書のBlock Kit表示
+- Page／Slide、最終score方式、該当箇所の表示
+- 保存先フォルダ／元ファイルリンク
+- 役に立った／役に立たなかったfeedback
+- feedback送信後のボタン無効化
+- Socket Mode／HTTP Mode切り替え
+
+## Slack App作成
+
+Slack App管理画面で`manifest.json`を使ってAppを作成します。Bot Token Scopesは次のとおりです。
+
+```text
+commands
+chat:write
+users:read
+users:read.email
+```
+
+Appをworkspaceへinstallし、`OAuth & Permissions`から`xoxb-`で始まるBot Tokenを取得します。
+
+ローカルではSocket Modeを使用します。`Basic Information > App-Level Tokens`で`connections:write` scopeを持つ`xapp-` Tokenを発行してください。
+
+## 環境変数
+
+```bash
+cp apps/slack/.env.example apps/slack/.env
+openssl rand -hex 32
+```
+
+生成した値をSlackとBackendの両方へ設定します。
+
+```dotenv
+# apps/slack/.env
+SLACK_BACKEND_SERVICE_TOKEN=<生成値>
+
+# apps/backend/.env
+SLACK_BACKEND_SERVICE_TOKEN=<同じ生成値>
+SLACK_ALLOWED_TEAM_ID=T0123456789
+```
+
+`SLACK_ALLOWED_TEAM_ID`はSlash Command payloadの`team_id`です。Slack Appのinstall先workspace IDと同じ値を指定します。
+
+## 起動
+
+Backendを先に起動します。
+
+```bash
+pnpm dev:backend
+pnpm dev:slack
+```
+
+Slackで次を実行します。
+
+```text
+/lab-search モデルマージ
+```
+
+BotはSlash Commandをすぐにackし、その後email取得とBackend検索を行い、結果を本人だけに見えるephemeral messageとして返します。
+
+## 認可
+
+Slackから直接届く通信はBoltがSocket ModeまたはSigning Secretで検証します。その後Backendは次をすべて検証します。
+
+```text
+Service Tokenが一致
+AND workspace IDが一致
+AND emailがSupabase allowed_usersに存在
+```
+
+Slack Connect等でemailを取得できないユーザーは検索できません。
+
+## 今後
+
+- App Mention対応
+- 複数workspace向けOAuth installation store
+- Service Token rotation

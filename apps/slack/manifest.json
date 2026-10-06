@@ -1,0 +1,39 @@
+{
+  "display_information": {
+    "name": "研究室資料検索",
+    "description": "研究室Google Driveの資料を検索します",
+    "background_color": "#263446"
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "lab-search",
+      "always_online": false
+    },
+    "slash_commands": [
+      {
+        "command": "/lab-search",
+        "description": "研究室の資料を検索する",
+        "usage_hint": "モデルマージによる破滅的忘却",
+        "should_escape": false
+      }
+    ]
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": [
+        "commands",
+        "chat:write",
+        "users:read",
+        "users:read.email"
+      ]
+    }
+  },
+  "settings": {
+    "interactivity": {
+      "is_enabled": true
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": true,
+    "token_rotation_enabled": false
+  }
+}

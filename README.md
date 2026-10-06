@@ -1,6 +1,6 @@
 # 研究室資料検索（Lab Search）
 
-研究室のGoogle Driveにある資料を自然言語で検索する、Backend中心のmonorepoです。Phase 2ではPDF／PPTX／Google Slides／DOCX／Google DocsをDriveから差分同期し、交換可能なGemini／Voyage AI Embedding、Zilliz Cloudのdense＋BM25 Hybrid Search、交換可能なrerankerで検索します。検索ログとfeedbackはSupabaseへ保存します。Phase 1のローカルPDF検索と、移行元のQdrant実装も開発・障害切り分け用に残しています。
+研究室のGoogle Driveにある資料を自然言語で検索する、Backend中心のmonorepoです。Phase 2ではPDF／PPTX／Google Slides／DOCX／Google DocsをDriveから差分同期し、交換可能なGemini／Voyage AI Embedding、Zilliz Cloudのdense＋BM25 Hybrid Search、交換可能なrerankerで検索します。検索ログとfeedbackはSupabaseへ保存します。Phase 3では同じBackend APIを使うSlack Slash Commandとfeedbackを追加しています。Phase 1のローカルPDF検索と、移行元のQdrant実装も開発・障害切り分け用に残しています。
 
 ## 構成と責務
 
@@ -9,14 +9,14 @@ lab-search/
 ├── apps/
 │   ├── web/       # Next.js App Router: 検索・Driveリンク・feedback・Google Login
 │   ├── backend/   # Hono: Drive、extract、chunk、embedding、Zilliz、Supabase、認可
-│   └── slack/     # Phase 3用workspace（Bot本体は未実装）
+│   └── slack/     # Slack Bolt: Slash Command、Block Kit、feedback
 ├── packages/
 │   └── shared/    # Web / Slack / Backend間のAPI契約だけ
 ├── package.json
 └── pnpm-workspace.yaml
 ```
 
-WebはBackendのHTTP APIだけを利用します。Google Drive、Gemini、Zilliz、Supabaseの秘密情報や検索ロジックはWebへ置きません。Slack BotもPhase 3で同じ`POST /api/search`と`POST /api/feedback`を利用します。
+WebとSlack BotはBackendのHTTP APIだけを利用します。Google Drive、Gemini、Zilliz、Supabaseの秘密情報や検索ロジックはクライアント側へ置きません。どちらも同じ`POST /api/search`と`POST /api/feedback`を利用します。
 
 ## データ構成
 
@@ -86,6 +86,10 @@ GOOGLE_DRIVE_ACKNOWLEDGE_ABUSE=false
 
 AUTH_MODE=google
 GOOGLE_CLIENT_ID=....apps.googleusercontent.com
+
+# Slack Botを接続する場合。openssl rand -hex 32で生成します。
+SLACK_BACKEND_SERVICE_TOKEN=...
+SLACK_ALLOWED_TEAM_ID=T0123456789
 ```
 
 Drive取得はservice accountを推奨します。対象フォルダをservice accountのメールアドレスへ共有してください。代わりに`GOOGLE_CLIENT_ID`、`GOOGLE_CLIENT_SECRET`、`GOOGLE_DRIVE_REFRESH_TOKEN`の組も利用できます。Google Slides APIも同じ認証と`drive.readonly` scopeを再利用します。Google Cloud projectではDrive APIに加えてGoogle Slides APIを有効化してください。`SUPABASE_SERVICE_ROLE_KEY`は旧形式との互換用で、可能なら`SUPABASE_SECRET_KEY`を使用します。
@@ -99,6 +103,8 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=....apps.googleusercontent.com
 ```
 
 `ZILLIZ_TOKEN`、`QDRANT_API_KEY`、`SUPABASE_SECRET_KEY`、`GEMINI_API_KEY`、`VOYAGE_API_KEY`、`GOOGLE_CLIENT_SECRET`、service account JSONは絶対に`NEXT_PUBLIC_*`へ設定しないでください。Google OAuthのWeb clientには`http://localhost:3000`と本番Web originを承認済みJavaScript生成元として登録します。
+
+Slack Botの設定と起動方法は[`apps/slack/README.md`](apps/slack/README.md)を参照してください。ローカルではSocket Modeを利用できるため、公開Request URLなしで動作確認できます。
 
 Googleログインでは対応ChromeでFedCM button flowを利用し、非対応ブラウザのpopup flow向けに`Cross-Origin-Opener-Policy: same-origin-allow-popups`も設定しています。localhostでログインpopupがブラウザに拒否される場合は、通常のブラウザタブで`http://localhost:3000`を直接開き、このoriginのpopupを許可してください。iframe内のpreviewではpopupやFedCMが制限されることがあります。
 
@@ -320,6 +326,8 @@ Google SlidesはPPTX exportを行わないため、Drive exportのサイズ上�
 ```bash
 pnpm dev:backend
 pnpm dev:web
+# Slack App設定後
+pnpm dev:slack
 # または両方を並列起動
 pnpm dev
 ```
@@ -430,9 +438,9 @@ pnpm build
 
 unit testは既存cosine／chunking／local embeddingに加え、Zilliz dense／BM25 Hybrid schema・RRF検索request・検索結果変換・checkpoint削除、Voyage reranker、basename正規化、PDF/PPTX重複判定、構造metadata保持、document-level grouping、search service、feedback serviceを外部APIなしで確認します。
 
-## Phase 3以降
+## 今後
 
-- `apps/slack`へSlack Bot、slash command、mention、Block Kit、feedback buttonを追加
-- Slack側から`source: "slack"`として同じ検索／feedback APIを呼ぶ
+- Slack App Mention対応
+- 複数Slack workspace向けOAuth installation store
 - RAG回答生成、Hybrid Searchのweight調整・日本語analyzer比較、reranker比較
 - OCR、高度な重複検出、feedbackを使ったranking改善、analytics、監視・rate limit・本番deploy

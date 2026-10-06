@@ -24,7 +24,13 @@ export function createApp(dependencies: AppDependencies) {
     cors({
       origin: process.env.CORS_ORIGIN ?? "*",
       allowMethods: ["GET", "POST", "OPTIONS"],
-      allowHeaders: ["Content-Type", "Authorization"],
+      allowHeaders: [
+        "Content-Type",
+        "Authorization",
+        "X-Slack-Team-Id",
+        "X-Slack-User-Id",
+        "X-Slack-User-Email",
+      ],
     }),
   );
 

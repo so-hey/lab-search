@@ -4,14 +4,17 @@ import type {
   SearchErrorResponse,
 } from "@lab-search/shared";
 import { Hono } from "hono";
-import type { AuthUser } from "../services/auth/AuthService.js";
+import type {
+  AuthenticationInput,
+  AuthUser,
+} from "../services/auth/AuthService.js";
 
 export type FeedbackHandler = (
   request: FeedbackRequest,
   user: AuthUser,
 ) => Promise<FeedbackResponse>;
 export type AuthenticateHandler = (
-  authorization: string | undefined,
+  input: AuthenticationInput,
 ) => Promise<AuthUser>;
 
 function validateFeedbackRequest(body: unknown): FeedbackRequest | string {
@@ -65,7 +68,13 @@ export function createFeedbackRoutes(
         { error: validation } satisfies SearchErrorResponse,
         400,
       );
-    const user = await authenticate(context.req.header("Authorization"));
+    const user = await authenticate({
+      source: validation.source,
+      authorization: context.req.header("Authorization"),
+      slackTeamId: context.req.header("X-Slack-Team-Id"),
+      slackUserId: context.req.header("X-Slack-User-Id"),
+      slackUserEmail: context.req.header("X-Slack-User-Email"),
+    });
     return context.json(await feedback(validation, user));
   });
   return routes;

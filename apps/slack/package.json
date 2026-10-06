@@ -2,8 +2,26 @@
   "name": "slack",
   "version": "0.1.0",
   "private": true,
+  "description": "Slack Bot client for the lab-search Backend API",
   "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --watch --import tsx src/index.ts",
+    "start": "node --env-file-if-exists=.env --import tsx src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test src/services/BackendClient.test.ts src/views/searchResults.test.ts"
+  },
   "dependencies": {
-    "@lab-search/shared": "workspace:*"
+    "@lab-search/shared": "workspace:*",
+    "@slack/bolt": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.5",
+    "eslint": "^9.39.5",
+    "globals": "^16.5.0",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.67.0"
   }
 }

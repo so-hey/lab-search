@@ -11,6 +11,8 @@ import type {
 } from "./repositories/metadata/types.js";
 import { DisabledAuthService, type AuthService } from "./services/auth/AuthService.js";
 import { GoogleAuthService } from "./services/auth/GoogleAuthService.js";
+import { SlackServiceAuthService } from "./services/auth/SlackServiceAuthService.js";
+import { SourceAuthService } from "./services/auth/SourceAuthService.js";
 import { createEmbeddingProvider } from "./services/embedding/createEmbeddingProvider.js";
 import { saveFeedback } from "./services/feedback/saveFeedback.js";
 import { createReranker } from "./services/reranking/createReranker.js";
@@ -31,7 +33,15 @@ if (isWritableDocumentRepository(documentRepository)) {
 let searchLogRepository: SearchLogRepository = new NullSearchLogRepository();
 let feedbackRepository: FeedbackRepository = new UnavailableFeedbackRepository();
 let documentLocationRepository: DocumentLocationRepository | undefined;
-let authService: AuthService = new DisabledAuthService();
+let webAuthService: AuthService = new DisabledAuthService();
+let slackAuthService: AuthService | undefined;
+const slackServiceToken = optionalEnv("SLACK_BACKEND_SERVICE_TOKEN");
+const slackAllowedTeamId = optionalEnv("SLACK_ALLOWED_TEAM_ID");
+if (Boolean(slackServiceToken) !== Boolean(slackAllowedTeamId)) {
+  throw new Error(
+    "SLACK_BACKEND_SERVICE_TOKEN and SLACK_ALLOWED_TEAM_ID must be configured together.",
+  );
+}
 const hasSupabase = Boolean(
   optionalEnv("SUPABASE_URL") &&
     (optionalEnv("SUPABASE_SECRET_KEY") || optionalEnv("SUPABASE_SERVICE_ROLE_KEY")),
@@ -52,18 +62,30 @@ if (hasSupabase) {
   feedbackRepository = new repositories.SupabaseFeedbackRepository(supabase);
   documentLocationRepository =
     new repositories.SupabaseDocumentLocationRepository(supabase);
+  const allowedUsers = new repositories.SupabaseAllowedUserRepository(supabase);
   if (enumEnv("AUTH_MODE", ["disabled", "google"] as const, "disabled") === "google") {
-    authService = new GoogleAuthService(
+    webAuthService = new GoogleAuthService(
       requiredEnv("GOOGLE_CLIENT_ID"),
-      new repositories.SupabaseAllowedUserRepository(supabase),
+      allowedUsers,
+    );
+  }
+  if (slackServiceToken && slackAllowedTeamId) {
+    slackAuthService = new SlackServiceAuthService(
+      slackServiceToken,
+      slackAllowedTeamId,
+      allowedUsers,
     );
   }
 } else if (enumEnv("AUTH_MODE", ["disabled", "google"] as const, "disabled") === "google") {
   throw new Error("Google authentication requires Supabase for allowed_users.");
+} else if (slackServiceToken || slackAllowedTeamId) {
+  throw new Error("Slack authentication requires Supabase for allowed_users.");
 }
 
+const authService = new SourceAuthService(webAuthService, slackAuthService);
+
 const app = createApp({
-  authenticate: (authorization) => authService.authenticate(authorization),
+  authenticate: (input) => authService.authenticate(input),
   search: (request, user) =>
     searchDocuments(
       request,

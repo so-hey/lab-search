@@ -96,7 +96,13 @@ export function createSearchRoutes(
       );
     }
 
-    const user = await authenticate(context.req.header("Authorization"));
+    const user = await authenticate({
+      source: validation.request.source,
+      authorization: context.req.header("Authorization"),
+      slackTeamId: context.req.header("X-Slack-Team-Id"),
+      slackUserId: context.req.header("X-Slack-User-Id"),
+      slackUserEmail: context.req.header("X-Slack-User-Email"),
+    });
     return context.json(await search(validation.request, user));
   });
 

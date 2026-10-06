@@ -2,6 +2,7 @@ import { OAuth2Client } from "google-auth-library";
 import type { AllowedUserRepository } from "../../repositories/metadata/types.js";
 import {
   AuthenticationError,
+  type AuthenticationInput,
   type AuthService,
   type AuthUser,
 } from "./AuthService.js";
@@ -14,8 +15,11 @@ export class GoogleAuthService implements AuthService {
     private readonly allowedUsers: AllowedUserRepository,
   ) {}
 
-  async authenticate(authorization: string | undefined): Promise<AuthUser> {
-    const match = authorization?.match(/^Bearer\s+(.+)$/iu);
+  async authenticate(input: AuthenticationInput): Promise<AuthUser> {
+    if (input.source !== "web") {
+      throw new AuthenticationError("Slack Bot認証が設定されていません。", 401);
+    }
+    const match = input.authorization?.match(/^Bearer\s+(.+)$/iu);
     if (!match)
       throw new AuthenticationError("Googleへのログインが必要です。", 401);
     let payload;
