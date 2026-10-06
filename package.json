@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@10.15.0",
+  "engines": {
+    "node": ">=25.0.0 <26.0.0"
+  },
   "scripts": {
     "dev": "pnpm --parallel --filter backend --filter web dev",
     "dev:web": "pnpm --filter web dev",
@@ -11,6 +14,14 @@
     "lint": "pnpm --filter @lab-search/shared lint && pnpm --filter backend lint && pnpm --filter web lint",
     "typecheck": "pnpm --filter @lab-search/shared typecheck && pnpm --filter backend typecheck && pnpm --filter web typecheck",
     "test": "pnpm --filter backend test",
-    "index:local": "pnpm --filter backend index:local"
+    "index:local": "pnpm --filter backend index:local",
+    "analyze:drive": "pnpm --filter backend analyze:drive",
+    "analyze:drive:deep": "pnpm --filter backend analyze:drive:deep",
+    "debug:drive-file": "pnpm --filter backend debug:drive-file",
+    "sync:drive": "pnpm --filter backend sync:drive",
+    "evaluate:search": "pnpm --filter backend evaluate:search",
+    "setup:zilliz": "pnpm --filter backend setup:zilliz",
+    "migrate:qdrant-to-zilliz": "pnpm --filter backend migrate:qdrant-to-zilliz",
+    "migrate:zilliz-to-hybrid": "pnpm --filter backend migrate:zilliz-to-hybrid"
   }
 }

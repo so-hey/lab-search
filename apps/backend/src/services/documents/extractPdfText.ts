@@ -1,6 +1,6 @@
 import { readFile, stat } from "node:fs/promises";
 import { extname } from "node:path";
-import { PDFParse } from "pdf-parse";
+import { extractPdfSections } from "./extractors/PdfDocumentExtractor.js";
 
 export async function extractPdfText(path: string): Promise<string> {
   if (extname(path).toLocaleLowerCase() !== ".pdf") {
@@ -18,23 +18,8 @@ export async function extractPdfText(path: string): Promise<string> {
     }
 
     const data = await readFile(path);
-    const parser = new PDFParse({ data: new Uint8Array(data) });
-
-    try {
-      const result = await parser.getText();
-      const text = result.text
-        .normalize("NFKC")
-        .replace(/\r\n?/g, "\n")
-        .trim();
-
-      if (!text) {
-        throw new Error(`No text could be extracted from PDF: ${path}`);
-      }
-
-      return text;
-    } finally {
-      await parser.destroy();
-    }
+    const result = await extractPdfSections(new Uint8Array(data));
+    return result.sections.map((section) => section.text).join("\n\n");
   } catch (cause) {
     if (cause instanceof Error && cause.message.includes(path)) {
       throw cause;

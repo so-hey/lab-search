@@ -24,9 +24,7 @@ describe("chunkDocument", () => {
     const chunks = chunkDocument(document, { chunkSize: 50, overlap: 12 });
 
     assert.ok(chunks.length > 1);
-    assert.ok(
-      chunks[1].content.includes(chunks[0].content.slice(-10).trim()),
-    );
+    assert.ok(chunks[1].content.includes(chunks[0].content.slice(-10).trim()));
   });
 
   it("rejects overlap that is not smaller than chunkSize", () => {

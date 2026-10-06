@@ -1,0 +1,514 @@
+{
+  "version": 2,
+  "description": "研究室Google Drive検索の初期評価セット。2026-08-22時点の同期済み資料名を基に作成した暫定的な人手関連度ラベルであり、内容確認後に継続更新する。",
+  "relevantThreshold": 2,
+  "relevanceScale": {
+    "0": "不適合。queryの意図に答えない",
+    "1": "周辺的。用語や広い分野は関係するが主題ではない",
+    "2": "関連。queryの意図をかなり扱う",
+    "3": "直接の正解。queryの中心テーマを扱う"
+  },
+  "cases": [
+    {
+      "id": "bm25-length-normalization",
+      "query": "単語の出現頻度と文書長を考慮して検索結果を順位付けする手法",
+      "category": "semantic-ja",
+      "judgments": [
+        {
+          "documentName": "[2023][0510][IR勉強会]確率的検索モデル_BM25.pptx",
+          "relevance": 3,
+          "rationale": "BM25を主題とする資料"
+        },
+        {
+          "documentName": "[2025][0512][IR勉強会]BM25.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2026][0427][IR勉強会]BM25.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2026][0511][IR勉強会]BM25.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2023][0517][IR勉強会]クエリ尤度モデル.pptx",
+          "relevance": 1,
+          "rationale": "同じ確率的情報検索だがBM25そのものではない"
+        }
+      ]
+    },
+    {
+      "id": "pagerank-link-analysis",
+      "query": "Webページ間のリンク構造と被リンクから重要度を計算したい",
+      "category": "semantic-ja",
+      "judgments": [
+        {
+          "documentName": "[2023][0621][IR勉強会]PageRank.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2023][0621][IR勉強会]Personalized PageRank_HITS.pptx",
+          "relevance": 2
+        }
+      ]
+    },
+    {
+      "id": "hits-authority-hub",
+      "query": "ハブとオーソリティを相互強化で評価するリンク解析アルゴリズム",
+      "category": "semantic-ja",
+      "judgments": [
+        {
+          "documentName": "[2023][0621][IR勉強会]Personalized PageRank_HITS.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2023][0621][IR勉強会]PageRank.pptx",
+          "relevance": 1
+        }
+      ]
+    },
+    {
+      "id": "diversified-ranking-metrics",
+      "query": "検索結果の多様性を評価するα-nDCGやERR-IAについて知りたい",
+      "category": "technical-term-ja",
+      "judgments": [
+        {
+          "documentName": "[2023][0614][IR勉強会]α-nDCG,ERR-IA,D-measure.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[KDD]Assessing_Viewpoint_Diversity_in_Search_Results_Using_Ranking_Fairness_Metrics.pdf",
+          "relevance": 2
+        },
+        {
+          "documentName": "[2025][0512][IR勉強会]nDCG_カッパ係数.pptx",
+          "relevance": 2
+        }
+      ]
+    },
+    {
+      "id": "query-likelihood-language-model",
+      "query": "文書の言語モデルが検索クエリを生成する確率でランキングする方法",
+      "category": "semantic-ja",
+      "judgments": [
+        {
+          "documentName": "[2023][0517][IR勉強会]クエリ尤度モデル.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2023][0510][IR勉強会]確率的検索モデル_BM25.pptx",
+          "relevance": 1
+        }
+      ]
+    },
+    {
+      "id": "lda-topic-mixture",
+      "query": "各文書を複数トピックの確率分布として表現する潜在変数モデル",
+      "category": "semantic-ja",
+      "judgments": [
+        {
+          "documentName": "[2023][0524][IR勉強会]LDA.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2023][0524][IR勉強会]LSI.pptx",
+          "relevance": 1
+        }
+      ]
+    },
+    {
+      "id": "word2vec-distributed-representation",
+      "query": "単語の意味を低次元ベクトルで表す分散表現とskip-gram",
+      "category": "semantic-ja",
+      "judgments": [
+        {
+          "documentName": "[2023][0628][IR勉強会]word2vec.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2023][0628][IR勉強会]BERT.pptx",
+          "relevance": 1
+        }
+      ]
+    },
+    {
+      "id": "bert-masked-language-model",
+      "query": "Masked Language Modelと双方向Transformerによる事前学習",
+      "category": "cross-lingual-term",
+      "judgments": [
+        {
+          "documentName": "[2023][0628][IR勉強会]BERT.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2025][0526][IR勉強会]BERT.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2026][0518][IR勉強会]BERT.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2026][0525][IR勉強会]BERT.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2023][0426][IR勉強会]bert_classification.pptx",
+          "relevance": 2
+        }
+      ]
+    },
+    {
+      "id": "colbert-late-interaction",
+      "query": "queryとdocumentのtoken embeddingをMaxSimで照合するlate interaction検索",
+      "category": "cross-lingual-term",
+      "judgments": [
+        {
+          "documentName": "[2025][07007][堀部][IR勉強会]ColBERT.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2026][0622][IR勉強会]ColBERT.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2026][0629][IR勉強会]ColBERT_FB.pptx",
+          "relevance": 2
+        }
+      ]
+    },
+    {
+      "id": "model-merging-catastrophic-forgetting",
+      "query": "モデルマージを使ってLLM翻訳の破滅的忘却を抑制する研究",
+      "category": "semantic-ja",
+      "judgments": [
+        {
+          "documentName": "[2025][言語処理学会]モデルマージを用いた LLM 翻訳における破滅的忘却の抑制.pdf",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2025][EMNLP2024]Unlocking the Potential of Model Merging for Low-Resource Languages.pdf",
+          "relevance": 2
+        },
+        {
+          "documentName": "[2026][人工知能学会]大規模言語モデルのモデルマージにおける少量データに基づいたタスクベクトルの重み係数の学習.pdf",
+          "relevance": 2
+        },
+        {
+          "documentName": "[2026][DEIM][佐々木]モデルマージによるドメイン特化密検索モデルの統合と分析_v4.pptx",
+          "relevance": 1
+        }
+      ]
+    },
+    {
+      "id": "dense-retrieval-model-merging",
+      "query": "異なるドメインに特化した密検索モデルをモデルマージで統合したい",
+      "category": "semantic-ja",
+      "judgments": [
+        {
+          "documentName": "[2026][DEIM][佐々木]モデルマージによるドメイン特化密検索モデルの統合と分析_v4.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2025][言語処理学会]モデルマージを用いた LLM 翻訳における破滅的忘却の抑制.pdf",
+          "relevance": 2
+        },
+        {
+          "documentName": "[2026][人工知能学会]大規模言語モデルのモデルマージにおける少量データに基づいたタスクベクトルの重み係数の学習.pdf",
+          "relevance": 2
+        }
+      ]
+    },
+    {
+      "id": "conversational-search-human-assistant",
+      "query": "人間と検索アシスタントが対話しながら情報を探す会話型検索",
+      "category": "semantic-ja-to-en",
+      "judgments": [
+        {
+          "documentName": "[2022][0506][飛岡]_Exploring Conversational Search With Humans, Assistants, and Wizards.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2017][SIGIR]A conversational search transcription protocol and analysis.pdf",
+          "relevance": 2
+        },
+        {
+          "documentName": "[2023][0627][2021][CHIIR]StartingConversationswithSearchEngines-Interfacesthat ElicitNaturalLanguageQueries.pdf",
+          "relevance": 2
+        }
+      ]
+    },
+    {
+      "id": "voice-interface-usability",
+      "query": "音声ユーザインタフェースの使いやすさと利用体験を調べた研究",
+      "category": "semantic-ja-to-en",
+      "judgments": [
+        {
+          "documentName": "[2022][0715][飛岡]_Investigating the Usability and User Experiences of Voice User Interface.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2022][0506][飛岡]_Exploring Conversational Search With Humans, Assistants, and Wizards.pptx",
+          "relevance": 1
+        }
+      ]
+    },
+    {
+      "id": "credibility-belief-search-behavior",
+      "query": "文書の意見や信憑性が検索行動とユーザの信念変化に与える影響",
+      "category": "semantic-ja",
+      "judgments": [
+        {
+          "documentName": "[2019][CIKM][Suppanut]Analyzing the Effects of Document’s Opinion and Credibility on Search Behaviors and Belief Dynamics.pdf",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2019][DEIM][Suppanut]文書の意見と信憑性がユーザの検索行動および信念の変化に与える影響の分析.pdf",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2019][DEIM][Suppanut]文書の意見と信憑性がユーザの検索行動および信念の変化に与える影響の分析.pptx",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2023][0516][2023][CHIIR]Assessing Google Search’s New Features in Supporting Credibility.pdf",
+          "relevance": 2
+        },
+        {
+          "documentName": "[2019][WebDB][山本]信頼できる情報獲得に対する心がけと普段のWeb検索行動の関係分析.pptx",
+          "relevance": 2
+        }
+      ]
+    },
+    {
+      "id": "counterevidence-critical-search",
+      "query": "反対意見や反証を示してWeb検索ユーザに情報を批判的に精査させる",
+      "category": "semantic-ja",
+      "judgments": [
+        {
+          "documentName": "[2023][0511][2017][WII]検索トピックに対する反証示唆がウェブ検索ユーザの情報精査態度に与える影響.pdf",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2023][0411]批判的なウェブ検索を促進するクエリプライミング.pdf",
+          "relevance": 2
+        }
+      ]
+    },
+    {
+      "id": "fake-news-thumbnail",
+      "query": "ニュース本文を代表していないサムネイル画像をCLIPで検出するフェイクニュース研究",
+      "category": "semantic-ja-to-en",
+      "judgments": [
+        {
+          "documentName": "[2022][arXiv]How does fake news use a thumbnail CLIP_based Multimodal Detection on the Unrepresentative News Image.pdf",
+          "relevance": 3
+        }
+      ]
+    },
+    {
+      "id": "query-rewriting-retrieval",
+      "query": "検索性能を改善するためにユーザのqueryを書き換えたり拡張したりする手法",
+      "category": "semantic-ja-to-en",
+      "judgments": [
+        {
+          "documentName": "[2025][IEE Access]Crafting the Path: Robust Query Rewriting for Information Retrieval.pdf",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2025][0513][2025][DEIM]検索履歴に基づくユーザ興味を考慮した効率的なLLMクエリ拡張手法の提案.pdf",
+          "relevance": 2
+        },
+        {
+          "documentName": "[2025][0630][堀部][IR勉強会]クエリ拡張.pptx",
+          "relevance": 2
+        }
+      ]
+    },
+    {
+      "id": "search-result-diversity-acceptance",
+      "query": "ユーザが受け入れられる範囲で検索結果に多様な意見を含める",
+      "category": "semantic-ja",
+      "judgments": [
+        {
+          "documentName": "[2022][0722][山本]論文紹介_Matching Search Result Diversity with User Diversity Acceptance.pdf",
+          "relevance": 3
+        },
+        {
+          "documentName": "[2023][0711][2023][DEIM]受容性を考慮した多様な意見の検索手法.pdf",
+          "relevance": 3
+        },
+        {
+          "documentName": "[KDD]Assessing_Viewpoint_Diversity_in_Search_Results_Using_Ranking_Fairness_Metrics.pdf",
+          "relevance": 2
+        },
+        {
+          "documentName": "[2025][1107][池元]Ordered Submodularity and its Applications to Diversifyin g Recommendations.pdf",
+          "relevance": 1
+        }
+      ]
+    },
+    {
+      "id": "review-explanation-phrases",
+      "query": "ユーザレビューから推薦理由として説明可能なフレーズを抽出する",
+      "category": "semantic-ja",
+      "judgments": [
+        {
+          "documentName": "[2023][0601][2022][TOD]ユーザレビューを用いた機械学習モデルの説明可能性に基づく推薦フレーズの抽出.pdf",
+          "relevance": 3
+        },
+        {
+          "documentName": "Knowledge-Enhanced Personalized Review Generation with Capsule Graph Neural.pptx",
+          "relevance": 2
+        },
+        {
+          "documentName": "[2025][NAACL]RevieWeaver; Weaving Together Review Insights by Leveraging LLMs and Semantic Similarity.pdf",
+          "relevance": 2
+        },
+        {
+          "documentName": "[2023][0608][2014][TOD]レビューの文脈一貫性を用いたあらすじ文判定手法.pdf",
+          "relevance": 1
+        }
+      ]
+    },
+    {
+      "id": "simple-bm25",
+      "query": "BM25",
+      "category": "simple-keyword",
+      "judgments": [
+        { "documentName": "[2023][0510][IR勉強会]確率的検索モデル_BM25.pptx", "relevance": 3 },
+        { "documentName": "[2025][0512][IR勉強会]BM25.pptx", "relevance": 3 },
+        { "documentName": "[2026][0427][IR勉強会]BM25.pptx", "relevance": 3 },
+        { "documentName": "[2026][0511][IR勉強会]BM25.pptx", "relevance": 3 }
+      ]
+    },
+    {
+      "id": "simple-pagerank",
+      "query": "PageRank",
+      "category": "simple-keyword",
+      "judgments": [
+        { "documentName": "[2023][0621][IR勉強会]PageRank.pptx", "relevance": 3 },
+        { "documentName": "[2023][0621][IR勉強会]Personalized PageRank_HITS.pptx", "relevance": 2 }
+      ]
+    },
+    {
+      "id": "simple-lda",
+      "query": "LDA",
+      "category": "simple-keyword",
+      "judgments": [
+        { "documentName": "[2023][0524][IR勉強会]LDA.pptx", "relevance": 3 },
+        { "documentName": "[2023][0524][IR勉強会]LSI.pptx", "relevance": 1 }
+      ]
+    },
+    {
+      "id": "simple-word2vec",
+      "query": "word2vec",
+      "category": "simple-keyword",
+      "judgments": [
+        { "documentName": "[2023][0628][IR勉強会]word2vec.pptx", "relevance": 3 }
+      ]
+    },
+    {
+      "id": "simple-bert",
+      "query": "BERT",
+      "category": "simple-keyword",
+      "judgments": [
+        { "documentName": "[2023][0628][IR勉強会]BERT.pptx", "relevance": 3 },
+        { "documentName": "[2025][0526][IR勉強会]BERT.pptx", "relevance": 3 },
+        { "documentName": "[2026][0518][IR勉強会]BERT.pptx", "relevance": 3 },
+        { "documentName": "[2026][0525][IR勉強会]BERT.pptx", "relevance": 3 },
+        { "documentName": "[2023][0426][IR勉強会]bert_classification.pptx", "relevance": 2 }
+      ]
+    },
+    {
+      "id": "simple-colbert",
+      "query": "ColBERT",
+      "category": "simple-keyword",
+      "judgments": [
+        { "documentName": "[2025][07007][堀部][IR勉強会]ColBERT.pptx", "relevance": 3 },
+        { "documentName": "[2026][0622][IR勉強会]ColBERT.pptx", "relevance": 3 },
+        { "documentName": "[2026][0629][IR勉強会]ColBERT_FB.pptx", "relevance": 2 }
+      ]
+    },
+    {
+      "id": "simple-model-merging",
+      "query": "モデルマージ",
+      "category": "simple-keyword",
+      "judgments": [
+        { "documentName": "[2025][言語処理学会]モデルマージを用いた LLM 翻訳における破滅的忘却の抑制.pdf", "relevance": 3 },
+        { "documentName": "[2025][EMNLP2024]Unlocking the Potential of Model Merging for Low-Resource Languages.pdf", "relevance": 3 },
+        { "documentName": "[2026][DEIM][佐々木]モデルマージによるドメイン特化密検索モデルの統合と分析_v4.pptx", "relevance": 3 },
+        { "documentName": "[2026][人工知能学会]大規模言語モデルのモデルマージにおける少量データに基づいたタスクベクトルの重み係数の学習.pdf", "relevance": 3 }
+      ]
+    },
+    {
+      "id": "simple-conversational-search",
+      "query": "会話型検索",
+      "category": "simple-keyword",
+      "judgments": [
+        { "documentName": "[2022][0506][飛岡]_Exploring Conversational Search With Humans, Assistants, and Wizards.pptx", "relevance": 3 },
+        { "documentName": "[2017][SIGIR]A conversational search transcription protocol and analysis.pdf", "relevance": 2 },
+        { "documentName": "[2023][0627][2021][CHIIR]StartingConversationswithSearchEngines-Interfacesthat ElicitNaturalLanguageQueries.pdf", "relevance": 2 }
+      ]
+    },
+    {
+      "id": "simple-result-diversity",
+      "query": "検索結果の多様性",
+      "category": "simple-keyword",
+      "judgments": [
+        { "documentName": "[2022][0722][山本]論文紹介_Matching Search Result Diversity with User Diversity Acceptance.pdf", "relevance": 3 },
+        { "documentName": "[2023][0711][2023][DEIM]受容性を考慮した多様な意見の検索手法.pdf", "relevance": 3 },
+        { "documentName": "[KDD]Assessing_Viewpoint_Diversity_in_Search_Results_Using_Ranking_Fairness_Metrics.pdf", "relevance": 3 },
+        { "documentName": "[2023][0614][IR勉強会]α-nDCG,ERR-IA,D-measure.pptx", "relevance": 2 }
+      ]
+    },
+    {
+      "id": "simple-query-expansion",
+      "query": "クエリ拡張",
+      "category": "simple-keyword",
+      "judgments": [
+        { "documentName": "[2025][0630][堀部][IR勉強会]クエリ拡張.pptx", "relevance": 3 },
+        { "documentName": "[2025][0513][2025][DEIM]検索履歴に基づくユーザ興味を考慮した効率的なLLMクエリ拡張手法の提案.pdf", "relevance": 3 },
+        { "documentName": "[2025][IEE Access]Crafting the Path: Robust Query Rewriting for Information Retrieval.pdf", "relevance": 2 }
+      ]
+    },
+    {
+      "id": "simple-credibility",
+      "query": "情報の信憑性",
+      "category": "simple-keyword",
+      "judgments": [
+        { "documentName": "[2019][CIKM][Suppanut]Analyzing the Effects of Document’s Opinion and Credibility on Search Behaviors and Belief Dynamics.pdf", "relevance": 3 },
+        { "documentName": "[2019][DEIM][Suppanut]文書の意見と信憑性がユーザの検索行動および信念の変化に与える影響の分析.pdf", "relevance": 3 },
+        { "documentName": "[2019][DEIM][Suppanut]文書の意見と信憑性がユーザの検索行動および信念の変化に与える影響の分析.pptx", "relevance": 3 },
+        { "documentName": "[2023][0516][2023][CHIIR]Assessing Google Search’s New Features in Supporting Credibility.pdf", "relevance": 3 },
+        { "documentName": "[2019][WebDB][山本]信頼できる情報獲得に対する心がけと普段のWeb検索行動の関係分析.pptx", "relevance": 2 }
+      ]
+    },
+    {
+      "id": "simple-voice-interface",
+      "query": "音声ユーザインタフェース",
+      "category": "simple-keyword",
+      "judgments": [
+        { "documentName": "[2022][0715][飛岡]_Investigating the Usability and User Experiences of Voice User Interface.pptx", "relevance": 3 },
+        { "documentName": "[2022][0506][飛岡]_Exploring Conversational Search With Humans, Assistants, and Wizards.pptx", "relevance": 1 }
+      ]
+    },
+    {
+      "id": "no-answer-medieval-history",
+      "query": "鎌倉時代の荘園制度と御家人の関係",
+      "category": "no-answer",
+      "noAnswer": true,
+      "note": "研究室資料一覧の題名からは直接該当する資料を確認できない。誤った高scoreを検出するためのquery。",
+      "judgments": []
+    },
+    {
+      "id": "no-answer-organic-farming",
+      "query": "トマトの有機栽培に適した土壌と肥料",
+      "category": "no-answer",
+      "noAnswer": true,
+      "note": "研究室資料一覧の題名からは直接該当する資料を確認できない。誤った高scoreを検出するためのquery。",
+      "judgments": []
+    }
+  ]
+}

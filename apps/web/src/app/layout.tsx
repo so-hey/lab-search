@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "研究室資料検索",
-  description: "研究室内のPDF資料を意味検索するWebアプリ",
+  description: "研究室共有Driveの論文・発表資料・研究文書を横断検索するWebアプリ",
 };
 
 export default function RootLayout({

@@ -32,6 +32,12 @@ function isIndexedChunk(value: unknown): value is IndexedChunk {
     typeof candidate.documentName === "string" &&
     typeof candidate.chunkIndex === "number" &&
     typeof candidate.content === "string" &&
+    (candidate.driveFileId === undefined || typeof candidate.driveFileId === "string") &&
+    (candidate.sourceModifiedTime === undefined || typeof candidate.sourceModifiedTime === "string") &&
+    (candidate.mimeType === undefined || typeof candidate.mimeType === "string") &&
+    (candidate.page === undefined || typeof candidate.page === "number") &&
+    (candidate.slide === undefined || typeof candidate.slide === "number") &&
+    (candidate.sectionTitle === undefined || typeof candidate.sectionTitle === "string") &&
     (candidate.url === undefined || typeof candidate.url === "string") &&
     Array.isArray(candidate.embedding) &&
     candidate.embedding.every((entry) => Number.isFinite(entry))

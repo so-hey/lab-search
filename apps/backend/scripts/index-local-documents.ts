@@ -63,7 +63,10 @@ async function main() {
     for (let index = 0; index < chunks.length; index += 1) {
       indexedChunks.push({
         ...chunks[index],
-        embedding: await embeddingProvider.embed(chunks[index].content),
+        embedding: await embeddingProvider.embedDocument(
+          chunks[index].content,
+          documentName,
+        ),
       });
 
       const completed = index + 1;

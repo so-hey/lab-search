@@ -1,0 +1,68 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Length 1300 >>
+stream
+BT
+/F1 12 Tf
+72 740 Td
+14 TL
+(Lab Search Sample Paper) Tj
+T*
+(This paper studies model merging for efficient reuse of language models.) Tj
+T*
+(Model merging combines parameters from independently trained expert models.) Tj
+T*
+(Parameter interpolation is a simple baseline that averages model weights.) Tj
+T*
+(Task arithmetic can add or subtract learned parameter update vectors.) Tj
+T*
+(The evaluation compares merged models on accuracy and robustness benchmarks.) Tj
+T*
+(Good merge coefficients preserve useful capabilities from every source model.) Tj
+T*
+(Our retrieval prototype extracts text from PDF documents before chunking.) Tj
+T*
+(Each chunk receives a deterministic local hashing embedding for development.) Tj
+T*
+(The backend computes cosine similarity between a query and indexed chunks.) Tj
+T*
+(Results are sorted by similarity score and the top ranked chunks are returned.) Tj
+T*
+(The web application sends requests to the backend REST API over HTTP.) Tj
+T*
+(A future Slack bot will call the same API and will contain no search logic.) Tj
+T*
+(The repository abstraction can later use Supabase and pgvector search.) Tj
+T*
+(The embedding provider can later be replaced by Gemini or an E5 model.) Tj
+T*
+(This Phase One system intentionally omits answer generation and reranking.) Tj
+T*
+ET
+endstream
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000311 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1662
+%%EOF

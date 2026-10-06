@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f6f7f4;
-  --foreground: #17201b;
+  --background: #f6f5f2;
+  --foreground: #252a30;
 }
 
 @theme inline {
@@ -15,6 +15,11 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+}
+
+::selection {
+  background: #dce3ea;
+  color: #1f2b39;
 }
 
 button,

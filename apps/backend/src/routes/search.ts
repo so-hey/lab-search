@@ -4,12 +4,15 @@ import type {
   SearchResponse,
 } from "@lab-search/shared";
 import { Hono } from "hono";
+import type { AuthUser } from "../services/auth/AuthService.js";
+import type { AuthenticateHandler } from "./feedback.js";
 
 const MAX_QUERY_LENGTH = 2_000;
 const MAX_LIMIT = 20;
 
 export type SearchHandler = (
   request: SearchRequest,
+  user: AuthUser,
 ) => Promise<SearchResponse>;
 
 type ValidationResult =
@@ -18,7 +21,10 @@ type ValidationResult =
 
 function validateSearchRequest(body: unknown): ValidationResult {
   if (typeof body !== "object" || body === null || Array.isArray(body)) {
-    return { ok: false, error: "リクエスト本文はJSONオブジェクトにしてください。" };
+    return {
+      ok: false,
+      error: "リクエスト本文はJSONオブジェクトにしてください。",
+    };
   }
 
   const candidate = body as Partial<SearchRequest>;
@@ -34,7 +40,10 @@ function validateSearchRequest(body: unknown): ValidationResult {
   }
 
   if (candidate.source !== "web" && candidate.source !== "slack") {
-    return { ok: false, error: 'sourceには"web"または"slack"を指定してください。' };
+    return {
+      ok: false,
+      error: 'sourceには"web"または"slack"を指定してください。',
+    };
   }
 
   if (
@@ -59,7 +68,10 @@ function validateSearchRequest(body: unknown): ValidationResult {
   };
 }
 
-export function createSearchRoutes(search: SearchHandler) {
+export function createSearchRoutes(
+  search: SearchHandler,
+  authenticate: AuthenticateHandler,
+) {
   const routes = new Hono();
 
   routes.post("/", async (context) => {
@@ -69,7 +81,9 @@ export function createSearchRoutes(search: SearchHandler) {
       body = await context.req.json();
     } catch {
       return context.json(
-        { error: "リクエスト本文を正しいJSON形式にしてください。" } satisfies SearchErrorResponse,
+        {
+          error: "リクエスト本文を正しいJSON形式にしてください。",
+        } satisfies SearchErrorResponse,
         400,
       );
     }
@@ -82,7 +96,8 @@ export function createSearchRoutes(search: SearchHandler) {
       );
     }
 
-    return context.json(await search(validation.request));
+    const user = await authenticate(context.req.header("Authorization"));
+    return context.json(await search(validation.request, user));
   });
 
   return routes;

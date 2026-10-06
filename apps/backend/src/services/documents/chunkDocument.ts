@@ -8,6 +8,12 @@ export type SourceDocument = {
   id: string;
   name: string;
   content: string;
+  sourceModifiedTime?: string;
+  driveFileId?: string;
+  mimeType?: string;
+  page?: number;
+  slide?: number;
+  sectionTitle?: string;
   url?: string;
 };
 
@@ -32,7 +38,11 @@ function findLastBoundary(
   return boundary;
 }
 
-function chooseChunkEnd(text: string, start: number, targetEnd: number): number {
+function chooseChunkEnd(
+  text: string,
+  start: number,
+  targetEnd: number,
+): number {
   if (targetEnd === text.length) {
     return targetEnd;
   }
@@ -110,9 +120,19 @@ export function chunkDocument(
       chunks.push({
         id: `${document.id}:${chunkIndex}`,
         documentId: document.id,
+        ...(document.sourceModifiedTime
+          ? { sourceModifiedTime: document.sourceModifiedTime }
+          : {}),
+        ...(document.driveFileId ? { driveFileId: document.driveFileId } : {}),
         documentName: document.name,
+        ...(document.mimeType ? { mimeType: document.mimeType } : {}),
         chunkIndex,
         content,
+        ...(document.page ? { page: document.page } : {}),
+        ...(document.slide ? { slide: document.slide } : {}),
+        ...(document.sectionTitle
+          ? { sectionTitle: document.sectionTitle }
+          : {}),
         ...(document.url ? { url: document.url } : {}),
       });
     }

@@ -94,4 +94,17 @@ export class LocalEmbeddingProvider implements EmbeddingProvider {
 
     return vector.map((value) => value / magnitude);
   }
+
+  async embedDocument(text: string, title?: string): Promise<number[]> {
+    void title;
+    return this.embed(text);
+  }
+
+  async embedDocuments(texts: string[], title?: string): Promise<number[][]> {
+    return Promise.all(texts.map((text) => this.embedDocument(text, title)));
+  }
+
+  async embedQuery(text: string): Promise<number[]> {
+    return this.embed(text);
+  }
 }
