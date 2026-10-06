@@ -12,6 +12,17 @@ describe("extractMentionQuery", () => {
       extractMentionQuery("モデルマージについて <@U012ABCDEF> 検索", "U012ABCDEF"),
       "モデルマージについて 検索",
     );
+    assert.equal(
+      extractMentionQuery("<@U012ABCDEF|lab-search> モデルマージ", "U012ABCDEF"),
+      "モデルマージ",
+    );
+  });
+
+  it("BoltのBot IDと本文のIDが異なる場合も先頭メンションを除く", () => {
+    assert.equal(
+      extractMentionQuery("<@U0C6TUH8W69> モデルマージ", "B012ABCDEF"),
+      "モデルマージ",
+    );
   });
 
   it("別ユーザーへのメンションは検索語に残す", () => {

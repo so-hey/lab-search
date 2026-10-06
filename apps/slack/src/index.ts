@@ -5,6 +5,7 @@ import {
 } from "@slack/bolt";
 import { booleanEnv, integerEnv, optionalEnv, requiredEnv } from "./config/env.js";
 import { BackendClient, type SlackIdentity } from "./services/BackendClient.js";
+import { parseDirectMessage } from "./services/directMessage.js";
 import { extractMentionQuery } from "./services/mention.js";
 import {
   buildSearchResultBlocks,
@@ -101,6 +102,30 @@ app.event("app_mention", async ({ event, body, client, context, say, logger }) =
       text: error instanceof Error ? error.message : "検索に失敗しました。",
       thread_ts: threadTs,
     });
+  }
+});
+
+app.message(async ({ message, body, client, say, logger }) => {
+  const directMessage = parseDirectMessage(message);
+  if (!directMessage) return;
+  try {
+    if (!directMessage.query) {
+      await say("検索語を入力してください。例: モデルマージ");
+      return;
+    }
+    const identity = await slackIdentity(
+      client,
+      body.team_id,
+      directMessage.userId,
+    );
+    const response = await backend.search(directMessage.query, identity, 5);
+    await say({
+      text: `「${directMessage.query}」の検索結果 ${response.results.length}件`,
+      blocks: buildSearchResultBlocks(directMessage.query, response),
+    });
+  } catch (error) {
+    logger.error(error);
+    await say(error instanceof Error ? error.message : "検索に失敗しました。");
   }
 });
 

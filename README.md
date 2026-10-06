@@ -9,7 +9,7 @@ lab-search/
 ├── apps/
 │   ├── web/       # Next.js App Router: 検索・Driveリンク・feedback・Google Login
 │   ├── backend/   # Hono: Drive、extract、chunk、embedding、Zilliz、Supabase、認可
-│   └── slack/     # Slack Bolt: Slash Command、Block Kit、feedback
+│   └── slack/     # Slack Bolt: Slash Command、App Mention、DM、Block Kit、feedback
 ├── packages/
 │   └── shared/    # Web / Slack / Backend間のAPI契約だけ
 ├── package.json

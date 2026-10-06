@@ -6,6 +6,7 @@
 
 - `/lab-search <検索語>`
 - `@lab-search <検索語>`で投稿を残し、スレッドへ検索結果を返信
+- BotとのDMに検索語を送り、同じDMへ検索結果を返信
 - Slack user IDから`users.info`でemailを取得
 - Backend Service Token、workspace ID、user ID、emailの転送
 - 上位5文書のBlock Kit表示
@@ -23,6 +24,7 @@ Slack App管理画面で`manifest.json`を使ってAppを作成します。Bot T
 app_mentions:read
 commands
 chat:write
+im:history
 users:read
 users:read.email
 ```
@@ -75,6 +77,14 @@ BotはSlash Commandをすぐにackし、その後email取得とBackend検索を�
 ```
 
 ユーザーの投稿は通常メッセージとして残り、Botはその投稿のスレッドへ検索結果を返します。Slash Commandの入力自体はSlackの仕様上メッセージとして残らないため、非公開検索にはSlash Command、共有する検索にはメンションを使用します。
+
+履歴を残しながら非公開で検索したい場合は、Slackの`Apps`から`lab-search`を開き、Messagesタブへ検索語だけを送信します。
+
+```text
+破滅的忘却
+```
+
+DMではユーザーの入力とBotの検索結果が同じ会話に残ります。
 
 ## 認可
 
