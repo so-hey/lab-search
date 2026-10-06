@@ -14,6 +14,7 @@
 - 保存先フォルダ／元ファイルリンク
 - 役に立った／役に立たなかったfeedback
 - feedback送信後のボタン無効化
+- Backend接続、認証・認可、rate limit、Slack権限エラーの日本語案内
 - Socket Mode／HTTP Mode切り替え
 
 ## Slack App作成

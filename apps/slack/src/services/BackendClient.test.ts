@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { BackendClient } from "./BackendClient.js";
+import { BackendClient, BackendClientError } from "./BackendClient.js";
 
 it("BackendClientはSlack service tokenとuser identityを検索APIへ送る", async () => {
   let url = "";
@@ -42,4 +42,52 @@ it("BackendClientはSlack service tokenとuser identityを検索APIへ送る", a
     source: "slack",
   });
   assert.equal(result.searchLogId, "log-1");
+});
+
+it("Backendへ接続できない場合は安全な利用者向けmessageを持つerrorを返す", async () => {
+  const client = new BackendClient(
+    "http://localhost:8787",
+    "a".repeat(64),
+    async () => {
+      throw new TypeError("fetch failed: private host detail");
+    },
+  );
+
+  await assert.rejects(
+    client.search("モデルマージ", {
+      teamId: "T-LAB",
+      userId: "U123",
+      email: "member@example.ac.jp",
+    }),
+    (error: unknown) =>
+      error instanceof BackendClientError &&
+      error.kind === "connection" &&
+      !error.userMessage.includes("private host detail"),
+  );
+});
+
+it("403ではallowed_usersを確認するよう案内する", async () => {
+  const client = new BackendClient(
+    "https://backend.example.com",
+    "a".repeat(64),
+    async () =>
+      new Response(
+        JSON.stringify({
+          error: "このSlackアカウントには利用権限がありません。",
+        }),
+        { status: 403 },
+      ),
+  );
+
+  await assert.rejects(
+    client.search("モデルマージ", {
+      teamId: "T-LAB",
+      userId: "U123",
+      email: "member@example.ac.jp",
+    }),
+    (error: unknown) =>
+      error instanceof BackendClientError &&
+      error.kind === "permission" &&
+      error.userMessage.includes("allowed_users"),
+  );
 });

@@ -8,6 +8,10 @@ import { BackendClient, type SlackIdentity } from "./services/BackendClient.js";
 import { parseDirectMessage } from "./services/directMessage.js";
 import { extractMentionQuery } from "./services/mention.js";
 import {
+  SlackUserFacingError,
+  userFacingErrorMessage,
+} from "./services/userFacingError.js";
+import {
   buildSearchResultBlocks,
   decodeFeedbackAction,
   markFeedbackSubmitted,
@@ -33,11 +37,15 @@ async function slackIdentity(
   teamId: string | undefined,
   userId: string,
 ): Promise<SlackIdentity> {
-  if (!teamId) throw new Error("Slack workspace IDを取得できませんでした。");
+  if (!teamId) {
+    throw new SlackUserFacingError(
+      "Slack workspaceの情報を取得できませんでした。管理者へ連絡してください。",
+    );
+  }
   const response = await client.users.info({ user: userId });
   const email = response.user?.profile?.email;
   if (!email) {
-    throw new Error(
+    throw new SlackUserFacingError(
       "Slackプロフィールからメールアドレスを取得できません。管理者へ連絡してください。",
     );
   }
@@ -70,7 +78,7 @@ app.command(commandName, async ({ command, ack, client, respond, logger }) => {
     logger.error(error);
     await respond({
       response_type: "ephemeral",
-      text: error instanceof Error ? error.message : "検索に失敗しました。",
+      text: userFacingErrorMessage(error, "search"),
     });
   }
 });
@@ -79,7 +87,9 @@ app.event("app_mention", async ({ event, body, client, context, say, logger }) =
   const threadTs = event.thread_ts ?? event.ts;
   try {
     if (!context.botUserId || !event.user) {
-      throw new Error("SlackのBotまたはユーザー情報を取得できませんでした。");
+      throw new SlackUserFacingError(
+        "SlackのBotまたはユーザー情報を取得できませんでした。管理者へ連絡してください。",
+      );
     }
     const query = extractMentionQuery(event.text, context.botUserId);
     if (!query) {
@@ -99,7 +109,7 @@ app.event("app_mention", async ({ event, body, client, context, say, logger }) =
   } catch (error) {
     logger.error(error);
     await say({
-      text: error instanceof Error ? error.message : "検索に失敗しました。",
+      text: userFacingErrorMessage(error, "search"),
       thread_ts: threadTs,
     });
   }
@@ -125,7 +135,7 @@ app.message(async ({ message, body, client, say, logger }) => {
     });
   } catch (error) {
     logger.error(error);
-    await say(error instanceof Error ? error.message : "検索に失敗しました。");
+    await say(userFacingErrorMessage(error, "search"));
   }
 });
 
@@ -134,7 +144,11 @@ app.action<BlockButtonAction>(
   async ({ ack, body, action, client, respond, logger }) => {
     await ack();
     try {
-      if (!action.value) throw new Error("評価情報がありません。");
+      if (!action.value) {
+        throw new SlackUserFacingError(
+          "評価対象の情報を取得できませんでした。検索をやり直してください。",
+        );
+      }
       const request = decodeFeedbackAction(action.value);
       const identity = await slackIdentity(
         client,
@@ -163,10 +177,7 @@ app.action<BlockButtonAction>(
       logger.error(error);
       await respond({
         response_type: "ephemeral",
-        text:
-          error instanceof Error
-            ? error.message
-            : "フィードバックの保存に失敗しました。",
+        text: userFacingErrorMessage(error, "feedback"),
       });
     }
   },
