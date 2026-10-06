@@ -5,6 +5,7 @@
 ## 実装済み
 
 - `/lab-search <検索語>`
+- `@lab-search <検索語>`で投稿を残し、スレッドへ検索結果を返信
 - Slack user IDから`users.info`でemailを取得
 - Backend Service Token、workspace ID、user ID、emailの転送
 - 上位5文書のBlock Kit表示
@@ -19,6 +20,7 @@
 Slack App管理画面で`manifest.json`を使ってAppを作成します。Bot Token Scopesは次のとおりです。
 
 ```text
+app_mentions:read
 commands
 chat:write
 users:read
@@ -66,6 +68,14 @@ Slackで次を実行します。
 
 BotはSlash Commandをすぐにackし、その後email取得とBackend検索を行い、結果を本人だけに見えるephemeral messageとして返します。
 
+検索内容をチャンネルに残したい場合は、Botをチャンネルへ追加してメンションします。
+
+```text
+@lab-search モデルマージ
+```
+
+ユーザーの投稿は通常メッセージとして残り、Botはその投稿のスレッドへ検索結果を返します。Slash Commandの入力自体はSlackの仕様上メッセージとして残らないため、非公開検索にはSlash Command、共有する検索にはメンションを使用します。
+
 ## 認可
 
 Slackから直接届く通信はBoltがSocket ModeまたはSigning Secretで検証します。その後Backendは次をすべて検証します。
@@ -80,6 +90,5 @@ Slack Connect等でemailを取得できないユーザーは検索できませ�
 
 ## 今後
 
-- App Mention対応
 - 複数workspace向けOAuth installation store
 - Service Token rotation

@@ -440,7 +440,6 @@ unit testは既存cosine／chunking／local embeddingに加え、Zilliz dense／
 
 ## 今後
 
-- Slack App Mention対応
 - 複数Slack workspace向けOAuth installation store
 - RAG回答生成、Hybrid Searchのweight調整・日本語analyzer比較、reranker比較
 - OCR、高度な重複検出、feedbackを使ったranking改善、analytics、監視・rate limit・本番deploy

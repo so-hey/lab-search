@@ -5,6 +5,7 @@ import {
 } from "@slack/bolt";
 import { booleanEnv, integerEnv, optionalEnv, requiredEnv } from "./config/env.js";
 import { BackendClient, type SlackIdentity } from "./services/BackendClient.js";
+import { extractMentionQuery } from "./services/mention.js";
 import {
   buildSearchResultBlocks,
   decodeFeedbackAction,
@@ -69,6 +70,36 @@ app.command(commandName, async ({ command, ack, client, respond, logger }) => {
     await respond({
       response_type: "ephemeral",
       text: error instanceof Error ? error.message : "検索に失敗しました。",
+    });
+  }
+});
+
+app.event("app_mention", async ({ event, body, client, context, say, logger }) => {
+  const threadTs = event.thread_ts ?? event.ts;
+  try {
+    if (!context.botUserId || !event.user) {
+      throw new Error("SlackのBotまたはユーザー情報を取得できませんでした。");
+    }
+    const query = extractMentionQuery(event.text, context.botUserId);
+    if (!query) {
+      await say({
+        text: "検索語を指定してください。例: @lab-search モデルマージ",
+        thread_ts: threadTs,
+      });
+      return;
+    }
+    const identity = await slackIdentity(client, body.team_id, event.user);
+    const response = await backend.search(query, identity, 5);
+    await say({
+      text: `「${query}」の検索結果 ${response.results.length}件`,
+      blocks: buildSearchResultBlocks(query, response),
+      thread_ts: threadTs,
+    });
+  } catch (error) {
+    logger.error(error);
+    await say({
+      text: error instanceof Error ? error.message : "検索に失敗しました。",
+      thread_ts: threadTs,
     });
   }
 });
