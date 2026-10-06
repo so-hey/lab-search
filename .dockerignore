@@ -1,0 +1,17 @@
+.git
+.github
+.vercel
+.pnpm-store
+node_modules
+**/node_modules
+**/.next
+**/dist
+**/.env
+**/.env.*
+**/.DS_Store
+**/*.tsbuildinfo
+
+apps/backend/data/*.json
+apps/backend/reports/*.json
+apps/backend/reports/*.csv
+apps/backend/sample/*.pdf

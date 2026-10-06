@@ -108,6 +108,8 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=....apps.googleusercontent.com
 
 Slack Botの設定と起動方法は[`apps/slack/README.md`](apps/slack/README.md)を参照してください。ローカルではSocket Modeを利用できるため、公開Request URLなしで動作確認できます。
 
+本番デプロイは、WebをVercel、Backend／Slack Bot／Drive同期JobをNorthflankへ配置します。Dockerfile、環境変数、画面上の設定と確認順序は[`deploy/README.md`](deploy/README.md)を参照してください。
+
 Googleログインでは対応ChromeでFedCM button flowを利用し、非対応ブラウザのpopup flow向けに`Cross-Origin-Opener-Policy: same-origin-allow-popups`も設定しています。localhostでログインpopupがブラウザに拒否される場合は、通常のブラウザタブで`http://localhost:3000`を直接開き、このoriginのpopupを許可してください。iframe内のpreviewではpopupやFedCMが制限されることがあります。
 
 ## 無料枠を維持する自動処理

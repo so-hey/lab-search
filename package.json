@@ -23,6 +23,8 @@
     "evaluate:search": "pnpm --filter backend evaluate:search",
     "setup:zilliz": "pnpm --filter backend setup:zilliz",
     "migrate:zilliz-to-hybrid": "pnpm --filter backend migrate:zilliz-to-hybrid",
-    "keepalive:free-services": "pnpm --filter backend keepalive:free-services"
+    "keepalive:free-services": "pnpm --filter backend keepalive:free-services",
+    "docker:build:backend": "docker build -f deploy/backend.Dockerfile -t lab-search-backend:local .",
+    "docker:build:slack": "docker build -f deploy/slack.Dockerfile -t lab-search-slack:local ."
   }
 }
