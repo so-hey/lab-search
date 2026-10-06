@@ -1,6 +1,6 @@
 # 研究室資料検索（Lab Search）
 
-研究室のGoogle Driveにある資料を自然言語で検索する、Backend中心のmonorepoです。Phase 2ではPDF／PPTX／Google Slides／DOCX／Google DocsをDriveから差分同期し、交換可能なGemini／Voyage AI Embedding、Zilliz Cloudのdense＋BM25 Hybrid Search、交換可能なrerankerで検索します。検索ログとfeedbackはSupabaseへ保存します。Phase 3では同じBackend APIを使うSlack Slash Commandとfeedbackを追加しています。Phase 1のローカルPDF検索と、移行元のQdrant実装も開発・障害切り分け用に残しています。
+研究室のGoogle Driveにある資料を自然言語で検索する、Backend中心のmonorepoです。Phase 2ではPDF／PPTX／Google Slides／DOCX／Google DocsをDriveから差分同期し、Voyage AI Embedding、Zilliz Cloudのdense＋BM25 Hybrid Search、Voyage Rerankerで検索します。検索ログとfeedbackはSupabaseへ保存します。Phase 3では同じBackend APIを使うSlack Slash Commandとfeedbackを追加しています。Phase 1のローカルPDF検索も開発・障害切り分け用に残しています。
 
 ## 構成と責務
 
@@ -16,12 +16,11 @@ lab-search/
 └── pnpm-workspace.yaml
 ```
 
-WebとSlack BotはBackendのHTTP APIだけを利用します。Google Drive、Gemini、Zilliz、Supabaseの秘密情報や検索ロジックはクライアント側へ置きません。どちらも同じ`POST /api/search`と`POST /api/feedback`を利用します。
+WebとSlack BotはBackendのHTTP APIだけを利用します。Google Drive、Voyage、Zilliz、Supabaseの秘密情報や検索ロジックはクライアント側へ置きません。どちらも同じ`POST /api/search`と`POST /api/feedback`を利用します。
 
 ## データ構成
 
 - Zilliz Cloud Free: 1 entity = 1 chunk。Embedding Providerに対応するdense vectorと`documentId`、`driveFileId`、文書名、MIME type、chunk番号、本文、page／slide／sectionTitle、Drive URLを固定schemaで保存します。Hybrid collectionでは、文書名・section title・本文からICU analyzerとBM25 functionでsparse vectorも生成します。denseはAUTOINDEX + COSINE、sparseはAUTOINDEX + BM25、`documentId`はTRIE indexです。collectionがなければ作成し、既存collectionは再作成しません。次元・field・記録済みEmbedding Provider・Hybrid schemaの不一致時は安全のため停止します。
-- Qdrant Cloud: `SEARCH_MODE=qdrant`で従来実装を利用できます。既存vectorを再EmbeddingせずZillizへ移すmigration sourceとしても残しています。
 - Supabase PostgreSQL: `documents`（Drive metadataと同期状態）、`search_logs`、`feedback`、`allowed_users`を保存します。Embeddingは保存しません。
 - Google Drive: `GOOGLE_DRIVE_FOLDER_ID`以下だけをサブフォルダまで再帰探索します。
 
@@ -38,7 +37,7 @@ values ('member@example.ac.jp', 'member');
 
 - Node.js 25系（開発・typecheck・test・build確認済み: v25.3.0）
 - pnpm 10.x
-- Phase 2実運用: Zilliz Cloud Free、Supabase、Gemini API、Google Drive APIを有効にしたGoogle Cloud project
+- Phase 2実運用: Zilliz Cloud Free、Supabase、Voyage AI、Google Drive APIを有効にしたGoogle Cloud project
 
 ```bash
 node --version # v25.x.x
@@ -68,7 +67,7 @@ VOYAGE_EMBEDDING_TOKENS_PER_MINUTE=10000
 EMBEDDING_SYNC_BATCH_SIZE=5
 SEARCH_STRATEGY=hybrid
 RERANKER_PROVIDER=voyage
-VOYAGE_RERANK_MODEL=rerank-2.5-lite
+VOYAGE_RERANK_MODEL=rerank-3-lite
 RERANK_CANDIDATE_DOCUMENTS=20
 VOYAGE_RERANK_MAX_RETRIES=4
 VOYAGE_RERANK_REQUESTS_PER_MINUTE=3
@@ -103,7 +102,7 @@ NEXT_PUBLIC_AUTH_MODE=google
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=....apps.googleusercontent.com
 ```
 
-`ZILLIZ_TOKEN`、`QDRANT_API_KEY`、`SUPABASE_SECRET_KEY`、`GEMINI_API_KEY`、`VOYAGE_API_KEY`、`GOOGLE_CLIENT_SECRET`、service account JSONは絶対に`NEXT_PUBLIC_*`へ設定しないでください。Google OAuthのWeb clientには`http://localhost:3000`と本番Web originを承認済みJavaScript生成元として登録します。
+`ZILLIZ_TOKEN`、`SUPABASE_SECRET_KEY`、`VOYAGE_API_KEY`、`GOOGLE_CLIENT_SECRET`、service account JSONは絶対に`NEXT_PUBLIC_*`へ設定しないでください。Google OAuthのWeb clientには`http://localhost:3000`と本番Web originを承認済みJavaScript生成元として登録します。
 
 Slack Botの設定と起動方法は[`apps/slack/README.md`](apps/slack/README.md)を参照してください。ローカルではSocket Modeを利用できるため、公開Request URLなしで動作確認できます。
 
@@ -135,13 +134,13 @@ RERANKER_PROVIDER=none
 # Hybrid候補をVoyageで最終並べ替え
 SEARCH_STRATEGY=hybrid
 RERANKER_PROVIDER=voyage
-VOYAGE_RERANK_MODEL=rerank-2.5-lite
+VOYAGE_RERANK_MODEL=rerank-3-lite
 RERANK_CANDIDATE_DOCUMENTS=20
 VOYAGE_RERANK_MAX_RETRIES=4
 VOYAGE_RERANK_REQUESTS_PER_MINUTE=3
 ```
 
-Hybrid retrievalでは、日本語・英語が混在する研究室資料向けにICU analyzerを使ったBM25検索と、既存EmbeddingによるCOSINE検索を別々に実行し、Zilliz内でRRF（`k=60`）統合します。その後`documentId`で候補をまとめ、best chunkと上位2件の関連chunkを含む上位20文書を既定でVoyage `rerank-2.5-lite`へ送り、最終Top 5を決定します。reranker障害時は検索API全体を失敗させず、RRFの順位へfallbackします。
+Hybrid retrievalでは、日本語・英語が混在する研究室資料向けにICU analyzerを使ったBM25検索と、既存EmbeddingによるCOSINE検索を別々に実行し、Zilliz内でRRF（`k=60`）統合します。その後`documentId`で候補をまとめ、best chunkと上位2件の関連chunkを含む上位20文書をVoyage `rerank-3-lite`へ送り、最終Top 5を決定します。Rerankerモデルの変更では既存vectorの再作成は不要です。reranker障害時は検索API全体を失敗させず、RRFの順位へfallbackします。
 
 Voyageのbillingに支払い方法を登録していない場合、Rerankerは3 RPMに制限されます。Backendは`VOYAGE_RERANK_REQUESTS_PER_MINUTE`を超える呼び出しを事前に止め、429を受けた場合も短い間隔で再試行せず、すぐHybrid retrievalの順位へfallbackします。このためrate limit中も検索結果は待たずに返ります。支払い方法を登録した場合は、Voyage dashboardに表示された実際のRPMへ設定を更新してください。
 
@@ -163,9 +162,7 @@ pnpm migrate:zilliz-to-hybrid
 
 移行コマンドは元collectionのdense vector・chunk本文・metadataを新collectionへコピーし、BM25 sparse vectorはZilliz側で生成します。文書ごとのコピーが完了してからSupabaseの`vector_store_id`を更新するため、途中停止後も同じコマンドを再実行できます。移行・検索・`sync:drive`を確認するまでは元collectionを削除しないでください。
 
-### GeminiからVoyage AIへ切り替える
-
-既存Gemini vectorとVoyage vectorは同じcollectionへ混在させられません。既存`document_chunks`は残し、Voyage専用の新しいcollection名を設定します。
+### Voyage AI Embedding
 
 ```dotenv
 EMBEDDING_PROVIDER=voyage
@@ -179,34 +176,16 @@ EMBEDDING_SYNC_BATCH_SIZE=5
 ZILLIZ_COLLECTION=document_chunks_voyage4_lite_1024
 ```
 
-既存Supabase projectでは、先に`apps/backend/supabase/migrations/002_embedding_index_identity.sql`をSQL Editorで実行します。その後に次を実行します。
+既存Supabase projectでは、`apps/backend/supabase/migrations/002_embedding_index_identity.sql`まで適用してから次を実行します。
 
 ```bash
 pnpm setup:zilliz
 pnpm sync:drive
 ```
 
-`documents.embedding_provider_id`と`vector_store_id`を比較するため、Driveの更新時刻が同じでもProviderまたはcollectionが変われば自動的に再indexします。手動で`is_indexed`を全件更新する必要はありません。途中停止後は同じコマンドを再実行するとVoyage用collectionのcheckpointを再利用します。切替が完了するまで旧Gemini collectionは削除しないでください。
-
-QdrantにあるGemini vectorをVoyage collectionへ移行してはいけません。`migrate:qdrant-to-zilliz`は移行元と移行先が同じEmbedding Provider・次元の場合だけ利用します。
+`documents.embedding_provider_id`と`vector_store_id`を比較するため、Driveの更新時刻が同じでもProviderまたはcollectionが変われば自動的に再indexします。手動で`is_indexed`を全件更新する必要はありません。途中停止後は同じコマンドを再実行するとVoyage用collectionのcheckpointを再利用します。
 
 Voyageへ支払い方法を登録していないorganizationでは、APIが通知する3 RPM／10K TPMに合わせて上記の低速設定を使用します。ProviderはUTF-8 byte数による保守的なtoken概算でbatchを自動分割し、直近60秒のrequest数・推定token数を超えないよう待機します。429の場合も同じbatchを自動再試行します。`EMBEDDING_SYNC_BATCH_SIZE=5`は成功分を小刻みにZillizへcheckpoint保存するための値です。支払い方法を登録してTier 1になった後は、Dashboardに表示された実際の上限に合わせて`VOYAGE_EMBEDDING_REQUESTS_PER_MINUTE`と`VOYAGE_EMBEDDING_TOKENS_PER_MINUTE`を変更し、同期batchも100程度へ戻せます。
-
-### 既存Qdrantデータを移行する
-
-すでにQdrantへ保存済みのvectorがある場合は、Qdrantの環境変数も一時的に残して次を実行します。
-
-```dotenv
-QDRANT_URL=https://your-cluster.cloud.qdrant.io
-QDRANT_API_KEY=...
-QDRANT_COLLECTION=document_chunks
-```
-
-```bash
-pnpm migrate:qdrant-to-zilliz
-```
-
-このコマンドはSupabaseのactive documentsを順に処理し、Qdrantのvector・chunk本文・metadataをZillizへupsertします。Geminiへの再Embeddingは行いません。途中失敗は文書単位で記録して続行するため、同じコマンドを再実行できます。移行後も検索と`sync:drive`を確認するまではQdrant collectionを削除しないでください。
 
 ## Driveの事前分析
 
@@ -255,7 +234,7 @@ apps/backend/reports/drive-analysis-YYYYMMDD-HHmmss.json
 apps/backend/reports/drive-analysis-files-YYYYMMDD-HHmmss.csv
 ```
 
-このコマンドはEmbedding APIを呼ばず、Zilliz／Qdrant／Supabaseへ書き込まず、Driveも変更しません。index等のoverheadは実登録値ではないため、base dataへ係数を掛けた参考シナリオとして表示します。
+このコマンドはEmbedding APIを呼ばず、Zilliz／Supabaseへ書き込まず、Driveも変更しません。index等のoverheadは実登録値ではないため、base dataへ係数を掛けた参考シナリオとして表示します。
 
 特定ファイルのmetadata、取得方式、Google API reason、抽出・chunk結果は次で確認できます。
 
@@ -291,9 +270,7 @@ folder以下のmetadata一覧
 
 1文書のdownload、parse、Embedding、Vector DB更新が失敗しても他文書は続行し、最後にsummaryを表示します。失敗した文書は`is_indexed=false`になるため次回同期で再試行されます。抽出可能なテキストがない画像のみのPDF／PPTX等は障害ではなく`Empty skipped`として正常にskipし、古いvectorがあれば削除します。取得エラーは`cannotDownloadAbusiveFile`、`exportSizeLimitExceeded`、`insufficientFilePermissions`、`fileNotDownloadable`、その他へ分類します。
 
-Geminiへの文書Embeddingは、既定では20 chunkずつbatch送信し、成功したbatchを直ちにZillizへcheckpoint保存します（`EMBEDDING_SYNC_BATCH_SIZE`で1〜100件に変更可能）。通常の呼び出しは`GEMINI_EMBEDDING_REQUESTS_PER_MINUTE`（既定90）で平準化します。それでもproject全体の利用量などにより一時的な429になった場合は、Google APIが返す`retryDelay`に1秒の余裕を加えて同じbatchを自動再試行します（既定8回）。
-
-`EmbedContentRequestsPerDay...FreeTier`の日次quotaを使い切っても、その文書ですでに保存したchunkは失われません。quota reset後に同じ`pnpm sync:drive`を再実行すると、同じDrive更新時刻・chunk ID・本文・次元数のcheckpointをZillizから読み戻し、未保存chunkだけをGeminiへ送ります。summaryの`Embedded chunks`、`Reused checkpoint chunks`、`Embedding batch attempts`、`Embedding input chunks submitted`、`Embedding quota exhausted`、`Deferred`で、Embedding APIへ送った量とZillizへ確定した量を比較できます。Gemini APIの日次quotaはPacific timeの午前0時にresetされます（日本時間では夏時間中16時、標準時間中17時）。初回同期のchunk数が無料枠を大きく超える場合はVoyage AI等への切替、またはGoogle AI Studioでbillingを有効化したpaid tierを検討します。
+Voyageへの文書Embeddingはtoken budgetに収まるbatchへ自動分割し、成功したbatchを直ちにZillizへcheckpoint保存します（`EMBEDDING_SYNC_BATCH_SIZE`で保存単位を変更可能）。支払い方法未登録時は、`VOYAGE_EMBEDDING_REQUESTS_PER_MINUTE`と`VOYAGE_EMBEDDING_TOKENS_PER_MINUTE`で3 RPM／10K TPMに平準化します。一時的な429やnetwork errorは待機後に再試行します。同じ`pnpm sync:drive`を再実行すると保存済みcheckpointを読み戻し、未保存chunkだけをVoyageへ送ります。
 
 異なるEmbeddingモデルのvectorは比較できないため、Providerを変える場合は必ず別collectionを使用します。BackendはProvider IDとvector store IDをSupabaseへ記録し、変更時は自動的に全件を再index対象として扱います。
 

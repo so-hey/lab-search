@@ -199,7 +199,7 @@ async function main(): Promise<void> {
         searchStrategy: retrievalMode,
         searchMode: process.env.SEARCH_MODE ?? "local",
         vectorCollection:
-          process.env.ZILLIZ_COLLECTION ?? process.env.QDRANT_COLLECTION ?? null,
+          process.env.ZILLIZ_COLLECTION ?? null,
         limit: options.limit,
         relevantThreshold: dataset.relevantThreshold,
         summary,

@@ -34,7 +34,7 @@ function repository(
     endpoint: "https://zilliz.test",
     token: "test-token",
     dimensions,
-    embeddingProviderId: "gemini-embedding-001-2",
+    embeddingProviderId: "test-embedding-2",
     hybridEnabled,
     client,
   });
@@ -66,7 +66,7 @@ function describedCollection(dimensions: number, hybridEnabled = false) {
     status: success,
     collection_name: "document_chunks",
     schema: {
-      description: `${hybridEnabled ? "lab-search:v2" : "lab-search:v1"};dimensions=${dimensions};embeddingProvider=gemini-embedding-001-2${hybridEnabled ? ";hybrid=bm25-icu-rrf" : ""}`,
+      description: `${hybridEnabled ? "lab-search:v2" : "lab-search:v1"};dimensions=${dimensions};embeddingProvider=test-embedding-2${hybridEnabled ? ";hybrid=bm25-icu-rrf" : ""}`,
       fields: fields.map((name) => ({
         name,
         dim: name === "embedding" ? dimensions : undefined,

@@ -391,7 +391,7 @@ export function buildDeepDriveAnalysisReport(input: {
       pptxBySlideCount: topFiles(input.files, "slideCount", input.topLimit, "PPTX"),
     },
     notes: [
-      "No embedding API, Zilliz/Qdrant write, Supabase write, or Google Drive mutation was performed.",
+      "No embedding API, Zilliz write, Supabase write, or Google Drive mutation was performed.",
       "Vector DB overhead scenarios are multipliers, not measured provider storage usage.",
       ...(isSampled
         ? ["Projected totals are stratified-sample estimates; measured sample values are reported separately."]

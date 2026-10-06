@@ -6,14 +6,12 @@ import type {
   RemoteDocumentRepository,
 } from "./DocumentRepository.js";
 import { LocalDocumentRepository } from "./localDocumentRepository.js";
-import { QdrantDocumentRepository } from "./QdrantDocumentRepository.js";
 import { ZillizDocumentRepository } from "./ZillizDocumentRepository.js";
 
-const SEARCH_MODES = ["local", "qdrant", "zilliz"] as const;
+const SEARCH_MODES = ["local", "zilliz"] as const;
 const SEARCH_STRATEGIES = ["dense", "hybrid"] as const;
 
 function createRemoteDocumentRepository(
-  mode: "qdrant" | "zilliz",
   embeddingProvider: EmbeddingProvider,
 ): RemoteDocumentRepository {
   const strategy = enumEnv(
@@ -21,18 +19,6 @@ function createRemoteDocumentRepository(
     SEARCH_STRATEGIES,
     "dense",
   );
-  if (strategy === "hybrid" && mode !== "zilliz") {
-    throw new Error("SEARCH_STRATEGY=hybrid currently requires SEARCH_MODE=zilliz.");
-  }
-  if (mode === "qdrant") {
-    return new QdrantDocumentRepository({
-      url: requiredEnv("QDRANT_URL"),
-      apiKey: optionalEnv("QDRANT_API_KEY"),
-      collectionName: optionalEnv("QDRANT_COLLECTION"),
-      dimensions: embeddingProvider.dimensions,
-      embeddingProviderId: embeddingProvider.id,
-    });
-  }
   return new ZillizDocumentRepository({
     endpoint: requiredEnv("ZILLIZ_ENDPOINT"),
     token: requiredEnv("ZILLIZ_TOKEN"),
@@ -55,7 +41,7 @@ export function createDocumentRepository(
     }
     return new LocalDocumentRepository(getLocalIndexPath());
   }
-  return createRemoteDocumentRepository(mode, embeddingProvider);
+  return createRemoteDocumentRepository(embeddingProvider);
 }
 
 export function createWritableDocumentRepository(
@@ -63,7 +49,7 @@ export function createWritableDocumentRepository(
 ): RemoteDocumentRepository {
   const mode = enumEnv("SEARCH_MODE", SEARCH_MODES, "local");
   if (mode === "local") {
-    throw new Error("sync:drive requires SEARCH_MODE=qdrant or SEARCH_MODE=zilliz.");
+    throw new Error("sync:drive requires SEARCH_MODE=zilliz.");
   }
-  return createRemoteDocumentRepository(mode, embeddingProvider);
+  return createRemoteDocumentRepository(embeddingProvider);
 }

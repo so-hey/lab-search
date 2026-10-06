@@ -57,7 +57,7 @@ Options:
   --output-dir <path>    JSON/CSV output directory (default: apps/backend/reports)
   --help                 Show this help
 
-This command never calls an Embedding API or writes to Zilliz, Qdrant, Supabase, or Drive.`);
+This command never calls an Embedding API or writes to Zilliz, Supabase, or Drive.`);
 }
 
 async function main() {

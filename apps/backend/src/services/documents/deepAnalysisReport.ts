@@ -262,7 +262,7 @@ export function formatDeepAnalysisReport(
             `${file.name} (${file.mimeType}) [${file.status}]${file.driveErrorReason ? ` reason=${file.driveErrorReason}` : ""}: ${file.error ?? "unknown"}`,
         )),
     "",
-    "Dry-run guarantee: no Embedding API call, Zilliz/Qdrant/Supabase write, or Drive mutation was performed.",
+    "Dry-run guarantee: no Embedding API call, Zilliz/Supabase write, or Drive mutation was performed.",
   ].join("\n");
 }
 

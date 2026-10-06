@@ -153,7 +153,7 @@ describe("syncDrive", () => {
     const file = sourceFile("provider-changed", "2026-01-02T00:00:00Z");
     const existing = {
       ...record(file.id, file.modifiedTime),
-      embeddingProviderId: "gemini-embedding-001-768",
+      embeddingProviderId: "old-embedding-provider-768",
       vectorStoreId: "zilliz:document_chunks",
     };
     let current: DocumentRecord = existing;
@@ -383,7 +383,7 @@ describe("syncDrive", () => {
     assert.deepEqual(states, [{ id: "db-empty", isIndexed: false }]);
   });
 
-  it("Geminiの日次quota枯渇時は後続文書をAPIへ送らず再実行へ繰り越す", async () => {
+  it("Embeddingの日次quota枯渇時は後続文書をAPIへ送らず再実行へ繰り越す", async () => {
     const files = [
       sourceFile("first", "2026-01-02T00:00:00Z"),
       sourceFile("second", "2026-01-02T00:00:00Z"),

@@ -5,7 +5,7 @@ import {
 } from "./Reranker.js";
 
 const DEFAULT_ENDPOINT = "https://api.voyageai.com/v1/rerank";
-const DEFAULT_MODEL = "rerank-2.5-lite";
+const DEFAULT_MODEL = "rerank-3-lite";
 const DEFAULT_MAX_RETRIES = 4;
 const DEFAULT_REQUESTS_PER_MINUTE = 3;
 const MAX_RETRY_DELAY_MS = 60_000;

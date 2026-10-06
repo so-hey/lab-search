@@ -1,5 +1,5 @@
-export type SearchMode = "local" | "qdrant" | "zilliz";
-export type EmbeddingMode = "local" | "gemini" | "voyage";
+export type SearchMode = "local" | "zilliz";
+export type EmbeddingMode = "local" | "voyage";
 export type AuthMode = "disabled" | "google";
 
 export function optionalEnv(name: string): string | undefined {

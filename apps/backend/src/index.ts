@@ -47,7 +47,7 @@ const hasSupabase = Boolean(
     (optionalEnv("SUPABASE_SECRET_KEY") || optionalEnv("SUPABASE_SERVICE_ROLE_KEY")),
 );
 if (
-  enumEnv("SEARCH_MODE", ["local", "qdrant", "zilliz"] as const, "local") !== "local" &&
+  enumEnv("SEARCH_MODE", ["local", "zilliz"] as const, "local") !== "local" &&
   !hasSupabase
 ) {
   throw new Error("Remote search mode requires Supabase so search logs and feedback can be stored.");

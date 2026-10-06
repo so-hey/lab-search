@@ -22,7 +22,7 @@ describe("VoyageReranker", () => {
     }) as typeof fetch;
     const reranker = new VoyageReranker({
       apiKey: "secret",
-      model: "rerank-2.5-lite",
+      model: "rerank-3-lite",
       fetch: request,
     });
 
@@ -36,7 +36,7 @@ describe("VoyageReranker", () => {
     assert.deepEqual(requestBody, {
       query: "量子誤り訂正",
       documents: ["文書A", "文書B", "文書C"],
-      model: "rerank-2.5-lite",
+      model: "rerank-3-lite",
       top_k: 2,
       return_documents: false,
       truncation: true,

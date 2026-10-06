@@ -22,7 +22,6 @@
     "sync:drive": "pnpm --filter backend sync:drive",
     "evaluate:search": "pnpm --filter backend evaluate:search",
     "setup:zilliz": "pnpm --filter backend setup:zilliz",
-    "migrate:qdrant-to-zilliz": "pnpm --filter backend migrate:qdrant-to-zilliz",
     "migrate:zilliz-to-hybrid": "pnpm --filter backend migrate:zilliz-to-hybrid"
   }
 }
